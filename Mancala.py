@@ -1,13 +1,5 @@
-# Author: Lisa Fink
-# GitHub username: Lisa-Fink
-# Date: 12/4/2022
-# Description: A text-based Mancala game with: a Mancala class representing the
-# game that stores the state of the game and methods for playing the game, a
-# Board class representing the Mancala board with the pits stores and seeds
-# with methods for adding/removing seeds, moving on the board, and accessing
-# particular pits or stores, and a Player class representing one of the Mancala
-# game players that has a name and holding for holding seeds with methods for
-# picking up/dropping seeds.
+from Player import Player
+
 
 class Mancala:
     """
@@ -364,55 +356,3 @@ class Board:
         :return: Integer of the value in _board at the side and pit.
         """
         return self._board[side - 1][pit - 1]
-
-
-class Player:
-    """
-    A player in a Mancala game that has a name and holding representing the
-    seeds in the players hand. Has methods for picking up and dropping seeds
-    which update the amount stored in _holding, as well as methods to return
-    the values stored in its data members.
-    """
-
-    def __init__(self, name):
-        self._name = name
-        self._holding = 0
-
-    def pickup_seeds(self, amount):
-        """
-        Picks up the amount of seeds and adds to holding.
-
-        :param amount: The number of seeds being picked up.
-        """
-        self._holding += amount
-
-    def drop_seeds(self, amount):
-        """
-        Drops the amount of seeds from _holding.
-
-        :param amount: The number of seeds to drop.
-        :return: Integer of the number of seeds dropped.
-        """
-        if amount <= self._holding:
-            self._holding -= amount
-            return amount
-
-    def drop_all_seeds(self):
-        """
-        Drops all the seeds in _holding.
-
-        :return: Integer of the number of seeds dropped.
-        """
-        return self.drop_seeds(self._holding)
-
-    def number_of_seeds_in_hand(self):
-        """
-        :return: Integer stored in _holding
-        """
-        return self._holding
-
-    def get_name(self):
-        """
-        :return: String stored in _name
-        """
-        return self._name
