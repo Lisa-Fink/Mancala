@@ -92,12 +92,13 @@ class GUI:
     def display_turn(self, name):
         turn_font = pygame.freetype.SysFont("Arial", 30)
 
-        turn_rect = pygame.Rect(10, 10,
-                                W_WIDTH, 40)
+        turn_rect = pygame.Rect(10, 100,
+                                W_WIDTH // 3, 40)
         pygame.draw.rect(self.screen, (0, 0, 0),
                          turn_rect, 0, 0)
 
-        turn_font.render_to(self.screen, turn_rect, 'Turn: ' + name, (255, 255, 255))
+        turn_font.render_to(self.screen, turn_rect, 'Turn: ' + name,
+                            (255, 255, 255))
 
     def display_board(self):
         pygame.draw.rect(self.screen, BOARD_BG,
@@ -108,6 +109,25 @@ class GUI:
         font = pygame.font.SysFont('Arial', 64, True)
         text = font.render('Mancala', True, (255, 255, 255))
         self.screen.blit(text, ((W_WIDTH // 2) - text.get_size()[0] // 2, GAP))
+
+    def display_players(self, player1, player2):
+        player_font = pygame.freetype.SysFont("Arial", 30)
+
+        player1_rect = pygame.Rect(10, 20,
+                                   W_WIDTH // 3, 40)
+        player2_rect = pygame.Rect(10, 60,
+                                   W_WIDTH // 3, 40)
+        pygame.draw.rect(self.screen, (0, 0, 0),
+                         player1_rect, 0, 0)
+        pygame.draw.rect(self.screen, (0, 0, 0),
+                         player2_rect, 0, 0)
+        player1_text = 'Player 1: ' + player1
+        player2_text = 'Player 2: ' + player2
+
+        player_font.render_to(self.screen, player1_rect, player1_text,
+                              (255, 255, 255))
+        player_font.render_to(self.screen, player2_rect, player2_text,
+                              (255, 255, 255))
 
     def initialize_stores(self):
         store2 = Store(BOARD_LEFT + GAP, BOARD_TOP + GAP, 2)
@@ -140,11 +160,12 @@ class GUI:
         for i in range(len(player2_pits)):
             self.pits[1].add(player2_pits.pop())
 
-    def start(self, start_turn_name):
+    def start(self, player1_name, player2_name):
         # Initialise screen
         pygame.display.set_caption('Mancala')
         self.all_sprites.draw(self.screen)
-        self.display_turn(start_turn_name)
+        self.display_players(player1_name, player2_name)
+        self.display_turn(player1_name)
 
     def update(self, hole):
         hole.update_display()
@@ -183,7 +204,7 @@ def main():
     game = Mancala(gui)
     game.create_player('Lisa')
     game.create_player('Layla')
-    gui.start('Lisa')
+    gui.start('Lisa', 'Layla')
     pygame.display.flip()
 
     # Event loop
