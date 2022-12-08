@@ -132,7 +132,8 @@ class Mancala:
             self._turn = 2
         else:
             self._turn = 1
-        self._gui.display_turn(self._players[self._turn - 1].get_name())
+        self._gui.display_turn(self._players[self._turn - 1].get_name(),
+                               self._turn)
 
     def pickup_all_on_side(self):
         """

@@ -27,7 +27,6 @@ FONT = pygame.freetype.SysFont("Arial", 40)
 class Hole(pygame.sprite.Sprite):
     def __init__(self, width, height, left, top, seeds=0):
         super().__init__()
-
         self.image = pygame.Surface([width, height])
         self.image.fill(BOARD_BG)
         self.rect = self.image.get_rect()
@@ -43,6 +42,7 @@ class Hole(pygame.sprite.Sprite):
 
         self.change = None
         self.time_showing_changed = 0
+        self.can_select = False
 
     def update_display(self):
         self.image.fill(BOARD_BG)
@@ -51,6 +51,13 @@ class Hole(pygame.sprite.Sprite):
         FONT.render_to(self.image, self.text_rect, str(self.seeds))
         if self.change:
             self.display_changed_seed_count(self.change)
+        if self.can_select:
+            self.select()
+
+    def select(self):
+        rect = self.image.get_rect()
+        pygame.draw.rect(self.image, (150, 0, 0),
+                         rect, 6, border_radius=40)
 
     def display_changed_seed_count(self, amount):
         sign = ""
@@ -91,7 +98,7 @@ class GUI:
         self.display_board()
         self.display_title()
 
-    def display_turn(self, name):
+    def display_turn(self, name, turn):
         turn_font = pygame.freetype.SysFont("Arial", 30)
 
         turn_rect = pygame.Rect(10, 100,
@@ -101,6 +108,17 @@ class GUI:
 
         turn_font.render_to(self.screen, turn_rect, 'Turn: ' + name,
                             (255, 255, 255))
+
+        # add border to pits on players side
+        for i in range(len(self.pits)):
+            for pit in self.pits[i].sprites():
+                if i + 1 == turn:
+                    if pit.seeds > 0:
+                        pit.can_select = True
+                        self.update(pit)
+                else:
+                    pit.can_select = False
+                    self.update(pit)
 
     def display_board(self):
         pygame.draw.rect(self.screen, BOARD_BG,
@@ -167,7 +185,7 @@ class GUI:
         pygame.display.set_caption('Mancala')
         self.all_sprites.draw(self.screen)
         self.display_players(player1_name, player2_name)
-        self.display_turn(player1_name)
+        self.display_turn(player1_name, 1)
 
     def update(self, hole):
         hole.update_display()
