@@ -6,7 +6,8 @@ from Mancala import Mancala
 
 pygame.init()
 
-
+W_WIDTH = 1200
+W_HEIGHT = 800
 BOARD_BG = (255, 194, 136)
 PIT_BG = (185, 122, 87)
 BOARD_TOP = 200
@@ -63,8 +64,6 @@ class Hole(pygame.sprite.Sprite):
         self.time_showing_changed = pygame.time.get_ticks()
 
 
-
-
 class Store(Hole):
     def __init__(self, left, top, player):
         super().__init__(STORE_WIDTH, STORE_HEIGHT, left, top)
@@ -80,15 +79,37 @@ class Pit(Hole):
 class GUI:
     def __init__(self):
         self._change_pits = []
-
-        self.screen = pygame.display.set_mode((1200, 800))
-        self.board = pygame.draw.rect(self.screen, BOARD_BG,
-                                      pygame.Rect(BOARD_LEFT, BOARD_TOP,
-                                                   BOARD_WIDTH, 400), 0, 140)
+        self.screen = pygame.display.set_mode((W_WIDTH, W_HEIGHT))
         self.all_sprites = pygame.sprite.Group()
         self.stores = pygame.sprite.Group()
         self.pits = [pygame.sprite.Group(), pygame.sprite.Group()]
 
+        self.initialize_stores()
+        self.initialize_pits()
+        self.display_board()
+        self.display_title()
+
+    def display_turn(self, name):
+        turn_font = pygame.freetype.SysFont("Arial", 30)
+
+        turn_rect = pygame.Rect(10, 10,
+                                W_WIDTH, 40)
+        pygame.draw.rect(self.screen, (0, 0, 0),
+                         turn_rect, 0, 0)
+
+        turn_font.render_to(self.screen, turn_rect, 'Turn: ' + name, (255, 255, 255))
+
+    def display_board(self):
+        pygame.draw.rect(self.screen, BOARD_BG,
+                         pygame.Rect(BOARD_LEFT, BOARD_TOP,
+                                     BOARD_WIDTH, 400), 0, 140)
+
+    def display_title(self):
+        font = pygame.font.SysFont('Arial', 64, True)
+        text = font.render('Mancala', True, (255, 255, 255))
+        self.screen.blit(text, ((W_WIDTH // 2) - text.get_size()[0] // 2, GAP))
+
+    def initialize_stores(self):
         store2 = Store(BOARD_LEFT + GAP, BOARD_TOP + GAP, 2)
 
         store1 = Store(BOARD_WIDTH + BOARD_LEFT - GAP - STORE_WIDTH,
@@ -99,6 +120,7 @@ class GUI:
         self.all_sprites.add(store1)
         self.all_sprites.add(store2)
 
+    def initialize_pits(self):
         tops = [PLAYER1_PIT_TOP, PLAYER2_PIT_TOP]
         for i in range(6):
             pit = Pit(
@@ -118,10 +140,11 @@ class GUI:
         for i in range(len(player2_pits)):
             self.pits[1].add(player2_pits.pop())
 
-    def start(self):
+    def start(self, start_turn_name):
         # Initialise screen
         pygame.display.set_caption('Mancala')
         self.all_sprites.draw(self.screen)
+        self.display_turn(start_turn_name)
 
     def update(self, hole):
         hole.update_display()
@@ -156,10 +179,11 @@ class GUI:
 
 def main():
     gui = GUI()
-    gui.start()
+
     game = Mancala(gui)
     game.create_player('Lisa')
     game.create_player('Layla')
+    gui.start('Lisa')
     pygame.display.flip()
 
     # Event loop
@@ -170,8 +194,7 @@ def main():
             if event.type == QUIT:
                 return
 
-            if event.type == MOUSEBUTTONDOWN and pygame.Rect.collidepoint(
-                    gui.board, pygame.mouse.get_pos()):
+            if event.type == MOUSEBUTTONDOWN:
                 pit = gui.detect_pit_click(game.get_turn())
                 if not pit:
                     continue

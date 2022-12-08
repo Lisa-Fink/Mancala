@@ -14,6 +14,7 @@ class Mancala:
         self._turn = 1
         self._players = []
         self._board = Board(gui)
+        self._gui = gui
         self._ended = False
         self._winner = None
         self.special1 = False
@@ -131,6 +132,7 @@ class Mancala:
             self._turn = 2
         else:
             self._turn = 1
+        self._gui.display_turn(self._players[self._turn - 1].get_name())
 
     def pickup_all_on_side(self):
         """
