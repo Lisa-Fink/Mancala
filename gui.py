@@ -132,6 +132,8 @@ class GUI:
         hole.change_seed_count(amount)
         self._change_pits.append(hole)
         self.update(hole)
+        pygame.display.flip()
+        pygame.time.delay(600)
 
     def remove_change_display(self, hole):
         hole.change = None
@@ -177,7 +179,7 @@ def main():
 
         if gui.get_pits_changed():
             for pit in gui.get_pits_changed():
-                if pit.time_showing_changed < cur_time - 800:
+                if pit.time_showing_changed < cur_time - 1500:
                     gui.remove_change_display(pit)
 
         pygame.display.flip()
