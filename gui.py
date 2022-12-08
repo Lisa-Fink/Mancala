@@ -2,6 +2,8 @@ import pygame
 from pygame.locals import *
 import pygame.freetype
 
+from Mancala import Mancala
+
 pygame.init()
 
 
@@ -19,6 +21,7 @@ PLAYER2_PIT_TOP = GAP + BOARD_TOP
 PLAYER1_PIT_TOP = GAP + BOARD_TOP + STORE_HEIGHT - PIT_HEIGHT
 SEED_FONT_COLOR = (0, 0, 0)
 FONT = pygame.freetype.SysFont("Arial", 40)
+
 
 class Hole(pygame.sprite.Sprite):
     def __init__(self, width, height, left, top, seeds=0):
@@ -44,15 +47,22 @@ class Hole(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, PIT_BG, rect, 0, border_radius=40)
         FONT.render_to(self.image, self.text_rect, str(self.seeds))
         if self.change:
-            self.display_changed(self.change)
+            self.display_changed_seed_count(self.change)
 
-    def display_changed(self, amount):
-        change_rect = self.text_rect
-        sign = "+"
-        if amount < 0:
-            sign = '-'
+    def display_changed_seed_count(self, amount):
+        sign = ""
+        if amount > 0:
+            sign = '+'
         change_font = pygame.freetype.SysFont("Arial", 20)
-        change_font.render_to(self.image, self.image.get_rect(), sign + str(amount))
+        change_font.render_to(self.image, self.image.get_rect(),
+                              sign + str(amount))
+
+    def change_seed_count(self, amount):
+        self.change = amount
+        self.seeds += amount
+        self.time_showing_changed = pygame.time.get_ticks()
+
+
 
 
 class Store(Hole):
@@ -69,9 +79,11 @@ class Pit(Hole):
 
 class GUI:
     def __init__(self):
+        self._change_pits = []
+
         self.screen = pygame.display.set_mode((1200, 800))
-        self._board = pygame.draw.rect(self.screen, BOARD_BG,
-                                       pygame.Rect(BOARD_LEFT, BOARD_TOP,
+        self.board = pygame.draw.rect(self.screen, BOARD_BG,
+                                      pygame.Rect(BOARD_LEFT, BOARD_TOP,
                                                    BOARD_WIDTH, 400), 0, 140)
         self.all_sprites = pygame.sprite.Group()
         self.stores = pygame.sprite.Group()
@@ -87,14 +99,24 @@ class GUI:
         self.all_sprites.add(store1)
         self.all_sprites.add(store2)
 
-        for i in range(2):
-            tops = [PLAYER1_PIT_TOP, PLAYER2_PIT_TOP]
-            for j in range(6):
-                pit = Pit(
-                    BOARD_LEFT + PIT_WIDTH * j + GAP * (j + 2) + STORE_WIDTH,
-                    tops[i], j + 1)
-                self.pits[i].add(pit)
-                self.all_sprites.add(pit)
+        tops = [PLAYER1_PIT_TOP, PLAYER2_PIT_TOP]
+        for i in range(6):
+            pit = Pit(
+                BOARD_LEFT + PIT_WIDTH * i + GAP * (i + 2) + STORE_WIDTH,
+                tops[0], i + 1)
+            self.pits[0].add(pit)
+            self.all_sprites.add(pit)
+        # add top row in reverse order
+        player2_pits = []
+        for i in range(6):
+            pit = Pit(
+                BOARD_LEFT + PIT_WIDTH * i + GAP * (i + 2) + STORE_WIDTH,
+                tops[1], 6 - i)
+            # self.pits[0].add(pit)
+            player2_pits.append(pit)
+            self.all_sprites.add(pit)
+        for i in range(len(player2_pits)):
+            self.pits[1].add(player2_pits.pop())
 
     def start(self):
         # Initialise screen
@@ -105,42 +127,58 @@ class GUI:
         hole.update_display()
         self.all_sprites.draw(self.screen)
 
+    def update_pit(self, side, hole_num, amount):
+        hole = self.get_pit(side, hole_num)
+        hole.change_seed_count(amount)
+        self._change_pits.append(hole)
+        self.update(hole)
+
+    def remove_change_display(self, hole):
+        hole.change = None
+        self._change_pits.remove(hole)
+        self.update(hole)
+
+    def get_pits_changed(self):
+        return self._change_pits
+
     def detect_pit_click(self, turn):
         for pit in self.pits[turn - 1]:
             if pit.rect.collidepoint(pygame.mouse.get_pos()):
                 return pit
 
+    def get_pit(self, side, pit):
+        if pit == 7:
+            return self.stores.sprites()[side - 1]
+        return self.pits[side - 1].sprites()[pit - 1]
+
+
 def main():
     gui = GUI()
     gui.start()
+    game = Mancala(gui)
+    game.create_player('Lisa')
+    game.create_player('Layla')
     pygame.display.flip()
-    start_text = 0
-    change_pits = []
+
     # Event loop
+
     while True:
         cur_time = pygame.time.get_ticks()
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
-            # if event.type == MOUSEBUTTONDOWN and pygame.Rect.collidepoint(
-            #         gui._board, pygame.mouse.get_pos()):
 
-            if event.type == MOUSEBUTTONDOWN:
-                pit = gui.detect_pit_click(1)
+            if event.type == MOUSEBUTTONDOWN and pygame.Rect.collidepoint(
+                    gui.board, pygame.mouse.get_pos()):
+                pit = gui.detect_pit_click(game.get_turn())
                 if not pit:
                     continue
-                # pit.seeds = 10
-                change_pits.append(pit)
-                pit.change = 5
-                gui.update(pit)
-                pit.time_showing_changed = pygame.time.get_ticks()
-        if change_pits:
-            for i, pit in enumerate(change_pits):
+                game.play_game(game.get_turn(), pit.num)
+
+        if gui.get_pits_changed():
+            for pit in gui.get_pits_changed():
                 if pit.time_showing_changed < cur_time - 800:
-                    print('ended')
-                    pit.change = None
-                    gui.update(pit)
-                    del change_pits[i]
+                    gui.remove_change_display(pit)
 
         pygame.display.flip()
 

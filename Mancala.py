@@ -8,12 +8,16 @@ class Mancala:
     and winning conditions.
     """
 
-    def __init__(self):
+    def __init__(self, gui):
         self._turn = 1
         self._players = []
-        self._board = Board()
+        self._board = Board(gui)
         self._ended = False
         self._winner = None
+        self.special1 = False
+
+    def get_turn(self):
+        return self._turn
 
     def create_player(self, name):
         """
@@ -33,7 +37,7 @@ class Mancala:
         """
         Plays an entire turn, first validates the input and state of the game,
         and makes the move in the pit by calling make_move. Then checks if the
-        game is over, updating _board, _ended, and _winner, and finally
+        game is over, updating board, _ended, and _winner, and finally
         returns a list of the updated board.
 
         :param player: The player number (1 or 2).
@@ -54,12 +58,16 @@ class Mancala:
             if not 1 <= pit <= 6:
                 return "Invalid number for pit index"
 
-            self._turn = player
             # only makes the move if there are seeds in the pit
             if self._board.get_seeds_in_pit(self._turn, pit):
                 self.make_move(pit)
                 if self.is_end():
                     self.end_game()
+                else:
+                    if not self.special1:
+                        self.toggle_turn()
+                    else:
+                        self.special1 = False
             return self._board.flat()
 
     def make_move(self, pit):
@@ -149,7 +157,9 @@ class Mancala:
         # but if the game is over skip
         if last_pit == 7:
             if self._board.has_seeds_on_side(self._turn):
+                self.special1 = True
                 print(f'player {self._turn} take another turn')
+
         # check special rule 2, last seed placed in empty pit (pit has 1 seed)
         elif self._board.get_seeds_in_pit(last_side, last_pit) == 1:
             # take opposite seeds
@@ -220,7 +230,7 @@ class Mancala:
 
 class Board:
     """
-    A board for a Mancala game that has a _board data member, a 2d list,
+    A board for a Mancala game that has a board data member, a 2d list,
     representing the pits and stores on a Mancala board with values
     representing the seeds that go in the pits and stores.
     Has methods for updating the seeds in the pits and stores, getting the
@@ -229,8 +239,13 @@ class Board:
     formatted lists.
     """
 
-    def __init__(self):
+    def __init__(self, gui):
         self._board = [[4, 4, 4, 4, 4, 4, 0], [4, 4, 4, 4, 4, 4, 0]]
+        self._show_changes = True
+        self._gui = gui
+
+    def update_gui(self, side, pit, amount):
+        self._gui.update_pit(side, pit, amount)
 
     def flat(self):
         """
@@ -252,6 +267,8 @@ class Board:
         """
         seeds = self._board[side - 1][pit - 1]
         self._board[side - 1][pit - 1] = 0
+        if self._show_changes:
+            self.update_gui(side, pit, -seeds)
         return seeds
 
     def clear_opposite(self, side, pit):
@@ -337,10 +354,12 @@ class Board:
         :param amount: The amount of seeds to add.
         """
         self._board[side - 1][pit - 1] += amount
+        if self._show_changes:
+            self.update_gui(side, pit, amount)
 
     def get_players_pits(self, player_number):
         """
-        Returns a list of the player's pits, the first 6 indices of _board, by
+        Returns a list of the player's pits, the first 6 indices of board, by
         slicing the list.
         :param player_number: The player number (1 or 2).
         :return: List of the six pits on the players side of the board.
@@ -353,6 +372,6 @@ class Board:
 
         :param side: The side of the board (1 or 2).
         :param pit: The pit number (1-7).
-        :return: Integer of the value in _board at the side and pit.
+        :return: Integer of the value in board at the side and pit.
         """
         return self._board[side - 1][pit - 1]
