@@ -32,7 +32,9 @@ class Hole(pygame.sprite.Sprite):
         self.image.fill(BOARD_BG)
         self.rect = self.image.get_rect()
         pygame.draw.rect(self.image, PIT_BG, self.rect, 0, border_radius=40)
-        self.text_rect = self.rect.copy().center
+        self.text_rect = self.rect.copy()
+        self.text_rect.x = self.text_rect.centerx - 10
+        self.text_rect.y = self.text_rect.centery - 15
 
         self.rect.x = left
         self.rect.y = top
