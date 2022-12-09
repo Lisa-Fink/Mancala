@@ -51,7 +51,7 @@ class Hole(pygame.sprite.Sprite):
         FONT.render_to(self.image, self.text_rect, str(self.seeds))
         if self.change:
             self.display_changed_seed_count(self.change)
-        if self.can_select:
+        if self.can_select and self.seeds > 0:
             self.select()
 
     def select(self):
@@ -427,7 +427,9 @@ class StartScreen(Display):
         if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
             self._game_mode = None
             self._set_game_page = True
+            self._player_one_text = self._player_two_text = ''
             self.display_game_mode_screen()
+
             return True
 
     def check_hover(self, mouse_pos):
@@ -577,8 +579,12 @@ def main():
 
                 if event.type == MOUSEBUTTONDOWN:
                     pit = gui.detect_pit_click(game.get_turn())
-                    if not pit:
+                    if not pit or pit.seeds == 0:
                         continue
+                    # remove border
+                    for p in gui.pits[game.get_turn() - 1]:
+                        p.can_select = False
+                        p.update_display()
                     game.play_game(game.get_turn(), pit.num)
 
                 if gui.get_pits_changed():

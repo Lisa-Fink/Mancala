@@ -71,6 +71,11 @@ class Mancala:
                         self.toggle_turn()
                     else:
                         self.special1 = False
+            # updates gui to new turn
+            if not self._ended:
+                self._gui.display_turn(
+                    self._players[self._turn - 1].get_name(),
+                    self._turn)
             return self._board.flat()
 
     def make_move(self, pit):
@@ -132,8 +137,6 @@ class Mancala:
             self._turn = 2
         else:
             self._turn = 1
-        self._gui.display_turn(self._players[self._turn - 1].get_name(),
-                               self._turn)
 
     def pickup_all_on_side(self):
         """
