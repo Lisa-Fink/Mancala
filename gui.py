@@ -84,6 +84,7 @@ class Pit(Hole):
         super().__init__(PIT_WIDTH, PIT_HEIGHT, left, top, 4)
         self.num = num
 
+
 class Display:
     def __init__(self, screen):
         self._screen = screen
@@ -94,7 +95,8 @@ class Display:
         self._screen.blit(text, ((W_WIDTH // 2) - text.get_size()[0] // 2,
                                  GAP))
 
-class GUI(Display):
+
+class GameScreen(Display):
     def __init__(self, screen):
         super().__init__(screen)
         self._change_pits = []
@@ -104,7 +106,6 @@ class GUI(Display):
 
         self.initialize_stores()
         self.initialize_pits()
-        self.display_title()
 
     def display_turn(self, name, turn):
         turn_font = pygame.freetype.SysFont("Arial", 30)
@@ -183,8 +184,9 @@ class GUI(Display):
         for i in range(len(player2_pits)):
             self.pits[1].add(player2_pits.pop())
 
-    def start_game(self, player1_name, player2_name):
+    def start(self, player1_name, player2_name):
         # Initialise screen
+        self._screen.fill((0, 0, 0))
         self.display_title()
         self.display_board()
         self.all_sprites.draw(self._screen)
@@ -215,6 +217,9 @@ class GUI(Display):
         for pit in self.pits[turn - 1]:
             if pit.rect.collidepoint(pygame.mouse.get_pos()):
                 return pit
+
+    def check_click(self, turn):
+        return self.detect_pit_click(turn)
 
     def get_pit(self, side, pit):
         if pit == 7:
@@ -255,7 +260,7 @@ class SelectScreen(Display):
             pygame.display.flip()
 
 
-class StartScreen(SelectScreen):
+class GameModeScreen(SelectScreen):
     BUTTON_WIDTH = 180
     BUTTON_HEIGHT = 60
 
@@ -266,10 +271,43 @@ class StartScreen(SelectScreen):
     HARD_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH // 2,
                    500, BUTTON_WIDTH, BUTTON_HEIGHT)
 
+    def __init__(self, screen):
+        super().__init__(screen)
+
+    def start(self):
+        self._screen.fill((0, 0, 0))
+        self._buttons.clear()
+        self.display_title()
+        self.display_instructions()
+        self.display_player_options()
+
+    def display_instructions(self):
+        font = pygame.font.SysFont('Arial', 36)
+        text = font.render('Please Select a Game Mode', True, (180, 190, 170))
+        self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 200))
+
+    def display_player_options(self):
+        self.display_button(self.TWO_PLAYER_BUTTON, '2 PLAYERS', 30, 12)
+        self.display_button(self.EASY_BUTTON, 'VS EASY AI', 30, 12)
+        self.display_button(self.HARD_BUTTON, 'VS HARD AI', 30, 12)
+
+    def check_click(self, mouse_pos):
+        if pygame.Rect(self.EASY_BUTTON).collidepoint(mouse_pos):
+            return 'EASY'
+        if pygame.Rect(self.HARD_BUTTON).collidepoint(mouse_pos):
+            return 'HARD'
+        if pygame.Rect(self.TWO_PLAYER_BUTTON).collidepoint(mouse_pos):
+            return 'TWO'
+
+
+class PlayerNameScreen(SelectScreen):
+    BUTTON_WIDTH = 180
+    BUTTON_HEIGHT = 60
+
     START_BUTTON = (W_WIDTH // 2 + 20,
                     600, BUTTON_WIDTH, BUTTON_HEIGHT)
     BACK_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH - 20,
-                    600, BUTTON_WIDTH, BUTTON_HEIGHT)
+                   600, BUTTON_WIDTH, BUTTON_HEIGHT)
 
     INPUT_ONE = (W_WIDTH // 2 - BUTTON_WIDTH, 260,
                  BUTTON_WIDTH * 2, BUTTON_HEIGHT)
@@ -279,20 +317,13 @@ class StartScreen(SelectScreen):
     def __init__(self, screen):
         super().__init__(screen)
         self._mode = None
-        self.display_game_mode_screen()
-        self._set_game_page = True
+        self._active = None
         self._player_one_text = ''
         self._player_two_text = ''
         self._game_mode = None
 
-    def display_game_mode_screen(self):
-        self._screen.fill((0, 0, 0))
-        self._buttons.clear()
-        self.display_title()
-        self.display_instructions()
-        self.display_player_options()
-
-    def display_player_screen(self, game_mode):
+    def start(self, game_mode):
+        self._game_mode = game_mode
         self._screen.fill((0, 0, 0))
         self._buttons.clear()
         self.display_title()
@@ -305,50 +336,50 @@ class StartScreen(SelectScreen):
             self.display_player_two_prompt()
             self.display_player_two_input()
 
-    def display_player_one_input(self, active=False, text=None):
+    def process_input_change(self, char):
+        if self._active is None:
+            return
         # set data member to remember text when changing active state
-        if self._player_one_text and text is None:
-            text = self._player_one_text
-        else:
-            self._player_one_text = text
+        if self._active == 1:
+            if char == -1:
+                self._player_one_text = self._player_one_text[:-1]
+            else:
+                self._player_one_text += char
+        elif self._active == 2:
+            if char == -1:
+                self._player_two_text = self._player_two_text[:-1]
+            else:
+                self._player_two_text += char
+        self.display_player_one_input()
+        self.display_player_two_input()
 
+    def display_player_one_input(self):
         input_one_rect = pygame.Rect(self.INPUT_ONE)
         bg = (100, 100, 100)
-        if active:
+        if self._active == 1:
             bg = (200, 200, 200)
         pygame.draw.rect(self._screen, bg,
                          input_one_rect, border_radius=10)
         font = pygame.font.SysFont('Arial', 32)
-        text_surface = font.render(text, True, (0, 0, 0))
+        text_surface = font.render(self._player_one_text, True, (0, 0, 0))
         # set width so text cannot go outside input_one_rect
         input_one_rect.w = max(100, text_surface.get_width() + 10)
         self._screen.blit(text_surface,
                           (input_one_rect.x + 10, input_one_rect.y + 10))
 
-    def display_player_two_input(self, active=False, text=None):
-        # set data member to remember text when changing active state
-        if self._player_two_text and text is None:
-            text = self._player_two_text
-        else:
-            self._player_two_text = text
-
+    def display_player_two_input(self):
         input_two_rect = pygame.Rect(self.INPUT_TWO)
         bg = (100, 100, 100)
-        if active:
+        if self._active == 2:
             bg = (200, 200, 200)
         pygame.draw.rect(self._screen, bg,
                          input_two_rect, border_radius=10)
         font = pygame.font.SysFont('Arial', 32)
-        text_surface = font.render(text, True, (0, 0, 0))
+        text_surface = font.render(self._player_two_text, True, (0, 0, 0))
         # set width so text cannot go outside input_one_rect
         input_two_rect.w = max(100, text_surface.get_width() + 10)
         self._screen.blit(text_surface,
                           (input_two_rect.x + 10, input_two_rect.y + 10))
-
-    def display_instructions(self):
-        font = pygame.font.SysFont('Arial', 36)
-        text = font.render('Please Select a Game Mode', True, (180, 190, 170))
-        self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 200))
 
     def display_player_one_prompt(self):
         font = pygame.font.SysFont('Arial', 36)
@@ -362,174 +393,151 @@ class StartScreen(SelectScreen):
                            True, (180, 190, 170))
         self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 360))
 
-    def display_player_options(self):
-        self.display_button(self.TWO_PLAYER_BUTTON, '2 PLAYERS', 30, 12)
-        self.display_button(self.EASY_BUTTON, 'VS EASY AI', 30, 12)
-        self.display_button(self.HARD_BUTTON, 'VS HARD AI', 30, 12)
-
     def check_click(self, mouse_pos):
-        if self._set_game_page:
-            if pygame.Rect(self.EASY_BUTTON).collidepoint(mouse_pos):
-                self._set_game_page = False
-                self.display_player_screen('EASY')
-                self._game_mode = 'AI'
-            if pygame.Rect(self.HARD_BUTTON).collidepoint(mouse_pos):
-                self._set_game_page = False
-                self.display_player_screen('HARD')
-                self._game_mode = 'AI'
-            if pygame.Rect(self.TWO_PLAYER_BUTTON).collidepoint(mouse_pos):
-                self._set_game_page = False
-                self.display_player_screen('TWO')
-                self._game_mode = 'TWO'
-            return self._game_mode
-
-    def check_start_click(self, mouse_pos):
         if pygame.Rect(self.START_BUTTON).collidepoint(mouse_pos):
-            return True
-
-    def check_back_click(self, mouse_pos):
-        if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
-            self._game_mode = None
-            self._set_game_page = True
-            self._player_one_text = self._player_two_text = ''
-            self.display_game_mode_screen()
-            return True
-
-    def check_input_click(self, mouse_pos):
-        if pygame.Rect(self.INPUT_ONE).collidepoint(mouse_pos):
-            self.display_player_one_input(True)
-            if self._game_mode == 'TWO':
-                self.display_player_two_input()
-            pygame.display.flip()
-            return 1
-        else:
-            self.display_player_one_input()
-            pygame.display.flip()
-        if self._game_mode == 'TWO':
-            if pygame.Rect(self.INPUT_TWO).collidepoint(mouse_pos):
-                self.display_player_two_input(True)
-                pygame.display.flip()
-                return 2
+            # handle returning AI type
+            if self._game_mode == 'EASY':
+                self._player_two_text = -1
+            if self._game_mode == 'HARD':
+                self._player_two_text = -2
             else:
-                self.display_player_two_input()
-                pygame.display.flip()
+                # handle empty input
+                if not self._player_one_text:
+                    self._player_one_text = 'PLAYER 1'
+                if not self._player_two_text:
+                    self._player_two_text = 'PLAYER 1'
+            return self._player_one_text, self._player_two_text
+        if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
+            return 'BACK'
+
+        # check input clicks
+        if pygame.Rect(self.INPUT_ONE).collidepoint(mouse_pos):
+            self._active = 1
+        elif (self._game_mode == 'TWO' and
+              pygame.Rect(self.INPUT_TWO).collidepoint(mouse_pos)):
+            self._active = 2
+        else:
+            self._active = None
+        self.display_player_one_input()
+        self.display_player_two_input()
+        pygame.display.flip()
 
 
 class EndScreen(SelectScreen):
     BOX_WIDTH = W_WIDTH // 2
-    BOX = (W_WIDTH // 4, 240, BOX_WIDTH, W_HEIGHT // 1.5)
+    BOX = (W_WIDTH // 4, 160, BOX_WIDTH, W_HEIGHT // 1.5)
 
-    def __init__(self, winner_str, store1, store2):
-        super().__init__()
+    BUTTON_WIDTH = 180
+    BUTTON_HEIGHT = 60
+    BUTTON_X = W_WIDTH // 2 - BUTTON_WIDTH // 2
+
+    AGAIN_BUTTON = (BUTTON_X, BOX[1] + 245, BUTTON_WIDTH, BUTTON_HEIGHT)
+    MENU_BUTTON = (BUTTON_X, BOX[1] + 325, BUTTON_WIDTH, BUTTON_HEIGHT)
+    QUIT_BUTTON = (BUTTON_X, BOX[1] + 405, BUTTON_WIDTH, BUTTON_HEIGHT)
+
+    def __init__(self, screen):
+        super().__init__(screen)
+
+    def start(self, winner_str, store1, store2):
         self.display_box()
+
+        # text
+        self.display_winner_text(winner_str, 45)
+        self.display_winner_text('Player 1: ' + str(store1) + ' seeds', 105)
+        self.display_winner_text('Player 2: ' + str(store2) + ' seeds', 165)
+
+        # buttons
+        self.display_button(self.AGAIN_BUTTON, 'PLAY AGAIN', 26, 12)
+        self.display_button(self.MENU_BUTTON, 'MAIN MENU', 26, 12)
+        self.display_button(self.QUIT_BUTTON, 'EXIT GAME', 30, 12)
+
+    def display_winner_text(self, winner_str, offset_y):
+        font = pygame.font.SysFont('Arial', 36)
+        text = font.render(winner_str, True, (180, 190, 170))
+        self._screen.blit(text, (self.BOX[0] + 45, self.BOX[1] + offset_y))
 
     def display_box(self):
         pygame.draw.rect(self._screen, (86, 86, 86), self.BOX,
                          border_radius=10)
 
 
+class GraphicInterface:
+    def __init__(self):
+        self._screen = pygame.display.set_mode((W_WIDTH, W_HEIGHT))
+        self._select_mode_screen = GameModeScreen(self._screen)
+        self._player_screen = PlayerNameScreen(self._screen)
+        self._game_screen = GameScreen(self._screen)
+        self._end_screen = EndScreen(self._screen)
+        self._screens = [self._select_mode_screen, self._player_screen,
+                         self._game_screen, self._end_screen]
+        self._current_screen = 0
+
+        pygame.display.set_caption('Mancala')
+        self._select_mode_screen.start()
+
+    def next_screen(self, *args):
+        if self._current_screen < 3:
+            self._current_screen += 1
+        else:
+            self._current_screen = 0
+        self._screens[self._current_screen].start(*args)
+        pygame.display.flip()
+
+    def get_game_gui(self):
+        return self._game_screen
+
+    def get_screen_index(self):
+        return self._current_screen
+
+    def get_screen(self):
+        return self._screens[self._current_screen]
+
+    def show_mode_screen(self):
+        self._current_screen = 0
+        self._select_mode_screen.start()
+
+    def game_gui_showing_changed(self):
+        return len(self._game_screen.get_pits_changed()) > 0
+
+
+def check_display_time(gui):
+    cur_time = pygame.time.get_ticks()
+    for pit in gui.get_pits_changed():
+        if pit.time_showing_changed < cur_time - 1500:
+            gui.remove_change_display(pit)
+            pygame.display.flip()
+
 
 
 
 def main():
-    screen = pygame.display.set_mode((W_WIDTH, W_HEIGHT))
-    pygame.display.set_caption('Mancala')
-    start_screen = StartScreen(screen)
-    pygame.display.flip()
-    gui = GUI(screen)
-    game = Mancala(gui)
-    # select game mode
-    game_screen = 0
-    input_1 = False
-    player_one = ''
-    input_2 = False
-    player_two = ''
-    game_mode = None
+    gui = GraphicInterface()
+    game = Mancala(gui.get_game_gui())
 
     while True:
-        if game_screen == 1 and gui.get_pits_changed():
-            cur_time = pygame.time.get_ticks()
-            for pit in gui.get_pits_changed():
-                if pit.time_showing_changed < cur_time - 1500:
-                    gui.remove_change_display(pit)
-                    pygame.display.flip()
+        # check if on game screen and there are pits showing changed amount
+        if gui.get_screen_index() == 2 and gui.game_gui_showing_changed():
+            # removes update if passed time limit
+            check_display_time(gui.get_game_gui())
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
-            if game_screen == 0:
-                if event.type == MOUSEMOTION:
-                    start_screen.check_hover(pygame.mouse.get_pos())
 
-                if event.type == MOUSEBUTTONDOWN:
-                    if not game_mode:
-                        game_mode = start_screen.check_click(pygame.mouse.get_pos())
-                    else:
-                        # check if clicked on back button
-                        if start_screen.check_back_click(pygame.mouse.get_pos()):
-                            game_mode = None
-                            input_1 = input_2 = False
-                            player_one = player_two = ''
-                            continue
-                        # clicked on start game
-                        if start_screen.check_start_click(pygame.mouse.get_pos()):
-                            if not player_one:
-                                player_one = 'PLAYER ONE'
-                            if game_mode == 'TWO' and not player_two:
-                                player_two = 'PLAYER TWO'
-                            game_screen = 1
-                            screen.fill((0, 0, 0))
-                            game.create_player(player_one)
-                            if game_mode == 'EASY':
-                                gui.start_game(player_one, -1)
-                                game.create_player('0')
-                            elif game_mode == 'HARD':
-                                gui.start_game(player_one, -1)
-                                game.create_player('1')
-                            else:
-                                gui.start_game(player_one, player_two)
-                                game.create_player(player_two)
-                        # check if clicked on input
-                        else:
-                            selected = \
-                                start_screen.check_input_click(pygame.mouse.get_pos())
-                            if not selected and not input_1 and not input_2:
-                                continue
-                            if selected == 1:
-                                input_1 = True
-                                input_2 = False
-                            elif game_mode == 'TWO' and selected == 2:
-                                input_2 = True
-                                input_1 = False
-                            else:
-                                input_2 = False
-                                input_1 = False
+            if (gui.get_screen_index() == 0 or gui.get_screen_index() == 1 or
+               gui.get_screen_index() == 3) and event.type == MOUSEMOTION:
+                gui.get_screen().check_hover(pygame.mouse.get_pos())
 
-                if event.type == pygame.KEYDOWN:
-                    if game_mode and (input_1 or input_2):
-                        if input_1:
-                            if event.key == pygame.K_BACKSPACE:
-                                player_one = player_one[:-1]
-                            else:
-                                player_one += event.unicode
-                            start_screen.display_player_one_input(True, player_one)
-                            pygame.display.flip()
+            if event.type == MOUSEBUTTONDOWN:
 
-                        if game_mode == 'TWO' and input_2:
-                            if event.key == pygame.K_BACKSPACE:
-                                player_two = player_two[:-1]
-                            else:
-                                player_two += event.unicode
-                            start_screen.display_player_two_input(True, player_two)
-                            pygame.display.flip()
-
-            # main game
-            elif game_screen == 1:
-                if event.type == MOUSEBUTTONDOWN:
-                    pit = gui.detect_pit_click(game.get_turn())
+                # Main Game Click
+                if gui.get_screen_index() == 2:
+                    game_gui = gui.get_screen()
+                    pit = game_gui.check_click(game.get_turn())
                     if not pit or pit.seeds == 0:
                         continue
                     # remove border
-                    for p in gui.pits[game.get_turn() - 1]:
+                    for p in game_gui.pits[game.get_turn() - 1]:
                         p.can_select = False
                         p.update_display()
                     game.play_game(game.get_turn(), pit.num)
@@ -537,16 +545,38 @@ def main():
                     ended = game.get_end_state()
                     # updates gui to new turn after move completed
                     if not ended:
-                        gui.display_turn(game.get_player_obj().get_name(),
-                                         game.get_turn())
+                        game_gui.display_turn(
+                            game.get_player_obj().get_name(), game.get_turn())
                     else:
-                        # end game screen
-                        game_screen = 2
+                        # go to end game screen
                         winner_str = game.return_winner()
                         store1, store2 = game.get_stores()
-                        end_screen = EndScreen(winner_str, store1, store2)
-                        pass
+                        gui.next_screen(winner_str, store1, store2)
 
+                elif gui.get_screen_index() != 2:
+                    click = gui.get_screen().check_click(pygame.mouse.get_pos())
+
+                    # Game Mode Screen Click
+                    if click and gui.get_screen_index() == 0:
+                        gui.next_screen(click)
+
+                    # Player Name Screen Click
+                    elif click and gui.get_screen_index() == 1:
+                        if click == 'BACK':
+                            gui.show_mode_screen()
+                        else:
+                            player_one, player_two = click
+                            game.create_player(player_one)
+                            game.create_player(player_two)
+                            gui.next_screen(player_one, player_two)
+
+            if gui.get_screen_index() == 1 and event.type == pygame.KEYDOWN:
+                key = None
+                if event.key == pygame.K_BACKSPACE:
+                    key = -1
+                else:
+                    key = event.unicode
+                gui.get_screen().process_input_change(key)
                 pygame.display.flip()
 
 
