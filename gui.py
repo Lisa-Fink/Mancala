@@ -233,7 +233,10 @@ class StartScreen(Display):
                    400, BUTTON_WIDTH, BUTTON_HEIGHT)
     HARD_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH // 2,
                    500, BUTTON_WIDTH, BUTTON_HEIGHT)
-    START_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH // 2,
+
+    START_BUTTON = (W_WIDTH // 2 + 20,
+                    600, BUTTON_WIDTH, BUTTON_HEIGHT)
+    BACK_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH - 20,
                     600, BUTTON_WIDTH, BUTTON_HEIGHT)
 
     INPUT_ONE = (W_WIDTH // 2 - BUTTON_WIDTH, 260,
@@ -262,6 +265,7 @@ class StartScreen(Display):
         self.display_player_one_prompt()
         self.display_player_one_input()
         self.display_start_button()
+        self.display_back_button()
         if game_mode == 'TWO':
             self.display_player_two_prompt()
             self.display_player_two_input()
@@ -385,6 +389,20 @@ class StartScreen(Display):
         self._screen.blit(text, (self.START_BUTTON[0] + 34,
                                  self.START_BUTTON[1] + 12))
 
+    def display_back_button(self, hover=False):
+        button_color = (250, 250, 250)
+        if hover:
+            button_color = (250, 0, 250)
+        pygame.draw.rect(self._screen, button_color, self.BACK_BUTTON,
+                         border_radius=10)
+        self.display_back_text()
+
+    def display_back_text(self):
+        font = pygame.font.SysFont('Arial', 28)
+        text = font.render('Go Back', True, (0, 0, 0))
+        self._screen.blit(text,
+                          (self.BACK_BUTTON[0] + 43, self.BACK_BUTTON[1] + 12))
+
     def check_click(self, mouse_pos):
         if self._set_game_page:
             if pygame.Rect(self.EASY_BUTTON).collidepoint(mouse_pos):
@@ -403,6 +421,13 @@ class StartScreen(Display):
 
     def check_start_click(self, mouse_pos):
         if pygame.Rect(self.START_BUTTON).collidepoint(mouse_pos):
+            return True
+
+    def check_back_click(self, mouse_pos):
+        if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
+            self._game_mode = None
+            self._set_game_page = True
+            self.display_game_mode_screen()
             return True
 
     def check_hover(self, mouse_pos):
@@ -431,14 +456,19 @@ class StartScreen(Display):
         else:
             if pygame.Rect(self.START_BUTTON).collidepoint(mouse_pos):
                 self.display_start_button(True)
-                pygame.display.flip()
             else:
                 self.display_start_button()
-                pygame.display.flip()
+            if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
+                self.display_back_button(True)
+            else:
+                self.display_back_button()
+            pygame.display.flip()
 
     def check_input_click(self, mouse_pos):
         if pygame.Rect(self.INPUT_ONE).collidepoint(mouse_pos):
             self.display_player_one_input(True)
+            if self._game_mode == 'TWO':
+                self.display_player_two_input()
             pygame.display.flip()
             return 1
         else:
@@ -481,6 +511,12 @@ def main():
                     if not game_mode:
                         game_mode = start_screen.check_click(pygame.mouse.get_pos())
                     else:
+                        # check if clicked on back button
+                        if start_screen.check_back_click(pygame.mouse.get_pos()):
+                            game_mode = None
+                            input_1 = input_2 = False
+                            player_one = player_two = ''
+                            continue
                         # clicked on start game
                         if start_screen.check_start_click(pygame.mouse.get_pos()):
                             if not player_one:
