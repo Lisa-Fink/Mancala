@@ -586,6 +586,12 @@ def main():
                         p.can_select = False
                         p.update_display()
                     game.play_game(game.get_turn(), pit.num)
+                    # check if game ended
+                    ended = game.get_end_state()
+                    # updates gui to new turn
+                    if not ended:
+                        gui.display_turn(game.get_player_obj().get_name(),
+                                         game.get_turn())
 
                 if gui.get_pits_changed():
                     for pit in gui.get_pits_changed():

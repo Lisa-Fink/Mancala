@@ -36,6 +36,14 @@ class Mancala:
             self._players.append(player)
             return player
 
+    def get_end_state(self):
+        """
+        Returns boolean if game has already ended
+
+        :return: Boolean self._ended
+        """
+        return self._ended
+
     def play_game(self, player, pit):
         """
         Plays an entire turn, first validates the input and state of the game,
@@ -71,11 +79,6 @@ class Mancala:
                         self.toggle_turn()
                     else:
                         self.special1 = False
-            # updates gui to new turn
-            if not self._ended:
-                self._gui.display_turn(
-                    self._players[self._turn - 1].get_name(),
-                    self._turn)
             return self._board.flat()
 
     def make_move(self, pit):
