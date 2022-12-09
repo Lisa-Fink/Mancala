@@ -190,6 +190,13 @@ class GameScreen(Display):
         self.display_title()
         self.display_board()
         self.all_sprites.draw(self._screen)
+
+        # convert AI name to string
+        if player2_name == -1:
+            player2_name = 'EASY AI'
+        if player2_name == -2:
+            player2_name = 'HARD AI'
+
         self.display_players(player1_name, player2_name)
         self.display_turn(player1_name, 1)
 
@@ -351,7 +358,8 @@ class PlayerNameScreen(SelectScreen):
             else:
                 self._player_two_text += char
         self.display_player_one_input()
-        self.display_player_two_input()
+        if self._game_mode == 'TWO':
+            self.display_player_two_input()
 
     def display_player_one_input(self):
         input_one_rect = pygame.Rect(self.INPUT_ONE)
@@ -394,6 +402,7 @@ class PlayerNameScreen(SelectScreen):
         self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 360))
 
     def check_click(self, mouse_pos):
+        # clicked start
         if pygame.Rect(self.START_BUTTON).collidepoint(mouse_pos):
             # handle returning AI type
             if self._game_mode == 'EASY':
@@ -407,6 +416,7 @@ class PlayerNameScreen(SelectScreen):
                 if not self._player_two_text:
                     self._player_two_text = 'PLAYER 1'
             return self._player_one_text, self._player_two_text
+        # clicked back
         if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
             return 'BACK'
 
@@ -419,7 +429,8 @@ class PlayerNameScreen(SelectScreen):
         else:
             self._active = None
         self.display_player_one_input()
-        self.display_player_two_input()
+        if self._game_mode == 'TWO':
+            self.display_player_two_input()
         pygame.display.flip()
 
 
@@ -473,7 +484,10 @@ class GraphicInterface:
         self._current_screen = 0
 
         pygame.display.set_caption('Mancala')
+
+        # starts with select game mode screen
         self._select_mode_screen.start()
+        pygame.display.flip()
 
     def next_screen(self, *args):
         if self._current_screen < 3:
@@ -513,7 +527,6 @@ def check_display_time(gui):
 def main():
     gui = GraphicInterface()
     game = Mancala(gui.get_game_gui())
-
     while True:
         # check if on game screen and there are pits showing changed amount
         if gui.get_screen_index() == 2 and gui.game_gui_showing_changed():
