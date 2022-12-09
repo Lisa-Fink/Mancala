@@ -1,6 +1,6 @@
 from time import sleep
 
-from Player import Player
+from Player import Player, EasyAi, HardAi
 
 
 class Mancala:
@@ -32,7 +32,12 @@ class Mancala:
         :return: Player object that was created.
         """
         if len(self._players) < 2:
-            player = Player(name)
+            if name == -1:
+                player = EasyAi()
+            elif name == -2:
+                player = HardAi()
+            else:
+                player = Player(name)
             self._players.append(player)
             return player
 

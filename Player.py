@@ -48,3 +48,13 @@ class Player:
         :return: String stored in _name
         """
         return self._name
+
+
+class HardAi(Player):
+    def __init__(self):
+        super().__init__('HARD AI')
+
+
+class EasyAi(Player):
+    def __init__(self):
+        super().__init__('EASY AI')
