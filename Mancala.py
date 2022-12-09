@@ -238,6 +238,15 @@ class Mancala:
                    f'{self._board.get_players_pits(2)}'
         print(to_print)
 
+    def get_stores(self):
+        """
+        Returns the number of seeds in player 1 and player 2 stores
+
+        :return: Tuple for  integer of player1 store, integer of player2 store
+        """
+        return (self._board.get_seeds_in_store(1),
+                self._board.get_seeds_in_store(2))
+
 
 class Board:
     """
