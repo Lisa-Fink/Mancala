@@ -85,17 +85,27 @@ class Pit(Hole):
         self.num = num
 
 
-class GUI:
-    def __init__(self):
+class Display:
+    def __init__(self, screen):
+        self._screen = screen
+
+    def display_title(self):
+        font = pygame.font.SysFont('Arial', 64, True)
+        text = font.render('Mancala', True, (255, 255, 255))
+        self._screen.blit(text, ((W_WIDTH // 2) - text.get_size()[0] // 2,
+                                 GAP))
+
+
+class GUI(Display):
+    def __init__(self, screen):
+        super().__init__(screen)
         self._change_pits = []
-        self.screen = pygame.display.set_mode((W_WIDTH, W_HEIGHT))
         self.all_sprites = pygame.sprite.Group()
         self.stores = pygame.sprite.Group()
         self.pits = [pygame.sprite.Group(), pygame.sprite.Group()]
 
         self.initialize_stores()
         self.initialize_pits()
-        self.display_board()
         self.display_title()
 
     def display_turn(self, name, turn):
@@ -103,10 +113,10 @@ class GUI:
 
         turn_rect = pygame.Rect(10, 100,
                                 W_WIDTH // 3, 40)
-        pygame.draw.rect(self.screen, (0, 0, 0),
+        pygame.draw.rect(self._screen, (0, 0, 0),
                          turn_rect, 0, 0)
 
-        turn_font.render_to(self.screen, turn_rect, 'Turn: ' + name,
+        turn_font.render_to(self._screen, turn_rect, 'Turn: ' + name,
                             (255, 255, 255))
 
         # add border to pits on players side
@@ -121,14 +131,9 @@ class GUI:
                     self.update(pit)
 
     def display_board(self):
-        pygame.draw.rect(self.screen, BOARD_BG,
+        pygame.draw.rect(self._screen, BOARD_BG,
                          pygame.Rect(BOARD_LEFT, BOARD_TOP,
                                      BOARD_WIDTH, 400), 0, 140)
-
-    def display_title(self):
-        font = pygame.font.SysFont('Arial', 64, True)
-        text = font.render('Mancala', True, (255, 255, 255))
-        self.screen.blit(text, ((W_WIDTH // 2) - text.get_size()[0] // 2, GAP))
 
     def display_players(self, player1, player2):
         player_font = pygame.freetype.SysFont("Arial", 30)
@@ -137,16 +142,16 @@ class GUI:
                                    W_WIDTH // 3, 40)
         player2_rect = pygame.Rect(10, 60,
                                    W_WIDTH // 3, 40)
-        pygame.draw.rect(self.screen, (0, 0, 0),
+        pygame.draw.rect(self._screen, (0, 0, 0),
                          player1_rect, 0, 0)
-        pygame.draw.rect(self.screen, (0, 0, 0),
+        pygame.draw.rect(self._screen, (0, 0, 0),
                          player2_rect, 0, 0)
         player1_text = 'Player 1: ' + player1
         player2_text = 'Player 2: ' + player2
 
-        player_font.render_to(self.screen, player1_rect, player1_text,
+        player_font.render_to(self._screen, player1_rect, player1_text,
                               (255, 255, 255))
-        player_font.render_to(self.screen, player2_rect, player2_text,
+        player_font.render_to(self._screen, player2_rect, player2_text,
                               (255, 255, 255))
 
     def initialize_stores(self):
@@ -180,16 +185,16 @@ class GUI:
         for i in range(len(player2_pits)):
             self.pits[1].add(player2_pits.pop())
 
-    def start(self, player1_name, player2_name):
+    def start_game(self, player1_name, player2_name):
         # Initialise screen
-        pygame.display.set_caption('Mancala')
-        self.all_sprites.draw(self.screen)
+        self.display_board()
+        self.all_sprites.draw(self._screen)
         self.display_players(player1_name, player2_name)
         self.display_turn(player1_name, 1)
 
     def update(self, hole):
         hole.update_display()
-        self.all_sprites.draw(self.screen)
+        self.all_sprites.draw(self._screen)
 
     def update_pit(self, side, hole_num, amount):
         hole = self.get_pit(side, hole_num)
@@ -218,35 +223,296 @@ class GUI:
         return self.pits[side - 1].sprites()[pit - 1]
 
 
+class StartScreen(Display):
+    BUTTON_WIDTH = 180
+    BUTTON_HEIGHT = 60
+
+    TWO_PLAYER_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH // 2,
+                         300, BUTTON_WIDTH, BUTTON_HEIGHT)
+    EASY_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH // 2,
+                   400, BUTTON_WIDTH, BUTTON_HEIGHT)
+    HARD_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH // 2,
+                   500, BUTTON_WIDTH, BUTTON_HEIGHT)
+    START_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH // 2,
+                    600, BUTTON_WIDTH, BUTTON_HEIGHT)
+
+    INPUT_ONE = (W_WIDTH // 2 - BUTTON_WIDTH, 260,
+                 BUTTON_WIDTH * 2, BUTTON_HEIGHT)
+
+    def __init__(self, screen):
+        super().__init__(screen)
+        self._mode = None
+        self.display_game_mode_screen()
+        self._set_game_page = True
+        self._player_one_text = ''
+        self._player_two_text = ''
+
+    def display_game_mode_screen(self):
+        self._screen.fill((0, 0, 0))
+        self.display_title()
+        self.display_instructions()
+        self.display_player_options()
+
+    def display_player_screen(self, game_mode):
+        self._screen.fill((0, 0, 0))
+        self.display_title()
+        self.display_player_one_prompt()
+        self.display_player_one_input()
+        self.display_start_button()
+        if game_mode == 'TWO':
+            pass
+            # self.display_player_two_prompt()
+            # self.display_player_two_input()
+
+    def display_player_one_input(self, active=False, text=None):
+        # set data member to remember text when changing active state
+        if self._player_one_text and text is None:
+            text = self._player_one_text
+        else:
+            self._player_one_text = text
+
+        input_one_rect = pygame.Rect(self.INPUT_ONE)
+        bg = (100, 100, 100)
+        if active:
+            bg = (200, 200, 200)
+        pygame.draw.rect(self._screen, bg,
+                         input_one_rect, border_radius=10)
+        font = pygame.font.SysFont('Arial', 26)
+        text_surface = font.render(text, True, (0, 0, 0))
+        # set width so text cannot go outside input_one_rect
+        input_one_rect.w = max(100, text_surface.get_width() + 10)
+        self._screen.blit(text_surface,
+                          (input_one_rect.x + 5, input_one_rect.y + 5))
+
+    def display_instructions(self):
+        font = pygame.font.SysFont('Arial', 36)
+        text = font.render('Please Select a Game Mode', True, (180, 190, 170))
+        self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 200))
+
+    def display_player_one_prompt(self):
+        font = pygame.font.SysFont('Arial', 36)
+        text = font.render('Please Enter Player One\'s Name',
+                           True, (180, 190, 170))
+        self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 200))
+
+    def display_player_options(self):
+        # 2 player button
+        self.display_two_player_button()
+        self.display_easy_button()
+        self.display_hard_button()
+
+    def display_two_player_button(self, hover=False):
+        button_color = (250, 250, 250)
+        if hover:
+            button_color = (250, 0, 250)
+        pygame.draw.rect(self._screen, button_color, self.TWO_PLAYER_BUTTON,
+                         border_radius=10)
+        self.display_two_player_text()
+
+    def display_two_player_text(self):
+        font = pygame.font.SysFont('Arial', 28)
+        text = font.render('2 PLAYERS', True, (0, 0, 0))
+        self._screen.blit(text, (self.TWO_PLAYER_BUTTON[0] + 30,
+                                 self.TWO_PLAYER_BUTTON[1] + 12))
+
+    def display_easy_button(self, hover=False):
+        button_color = (250, 250, 250)
+        if hover:
+            button_color = (250, 0, 250)
+        pygame.draw.rect(self._screen, button_color, self.EASY_BUTTON,
+                         border_radius=10)
+        self.display_easy_text()
+
+    def display_easy_text(self):
+        font = pygame.font.SysFont('Arial', 28)
+        text = font.render('VS EASY AI', True, (0, 0, 0))
+        self._screen.blit(text, (self.EASY_BUTTON[0] + 30,
+                                 self.EASY_BUTTON[1] + 12))
+
+    def display_hard_button(self, hover=False):
+        button_color = (250, 250, 250)
+        if hover:
+            button_color = (250, 0, 250)
+        pygame.draw.rect(self._screen, button_color, self.HARD_BUTTON,
+                         border_radius=10)
+        self.display_hard_text()
+
+    def display_hard_text(self):
+        font = pygame.font.SysFont('Arial', 28)
+        text = font.render('VS HARD AI', True, (0, 0, 0))
+        self._screen.blit(text, (self.HARD_BUTTON[0] + 30,
+                                 self.HARD_BUTTON[1] + 12))
+
+    def display_start_button(self, hover=False):
+        button_color = (250, 250, 250)
+        if hover:
+            button_color = (250, 0, 250)
+        pygame.draw.rect(self._screen, button_color, self.START_BUTTON,
+                         border_radius=10)
+        self.display_start_text()
+
+    def display_start_text(self):
+        font = pygame.font.SysFont('Arial', 28)
+        text = font.render('Start Game', True, (0, 0, 0))
+        self._screen.blit(text, (self.START_BUTTON[0] + 34,
+                                 self.START_BUTTON[1] + 12))
+
+    def check_click(self, mouse_pos):
+        if self._set_game_page:
+            if pygame.Rect(self.EASY_BUTTON).collidepoint(mouse_pos):
+                self._set_game_page = False
+                self.display_player_screen('EASY')
+                return 'AI'
+            if pygame.Rect(self.HARD_BUTTON).collidepoint(mouse_pos):
+                self._set_game_page = False
+                self.display_player_screen('HARD')
+                return 'AI'
+            if pygame.Rect(self.TWO_PLAYER_BUTTON).collidepoint(mouse_pos):
+                self._set_game_page = False
+                self.display_player_screen('TWO')
+                return 'TWO'
+
+    def check_start_click(self, mouse_pos):
+        if pygame.Rect(self.START_BUTTON).collidepoint(mouse_pos):
+            return True
+
+    def check_hover(self, mouse_pos):
+        if self._set_game_page:
+            if pygame.Rect(self.EASY_BUTTON).collidepoint(mouse_pos):
+                self.display_easy_button(True)
+                pygame.display.flip()
+            else:
+                self.display_easy_button()
+                pygame.display.flip()
+
+            if pygame.Rect(self.HARD_BUTTON).collidepoint(mouse_pos):
+                self.display_hard_button(True)
+                pygame.display.flip()
+            else:
+                self.display_hard_button()
+                pygame.display.flip()
+
+            if pygame.Rect(self.TWO_PLAYER_BUTTON).collidepoint(mouse_pos):
+                self.display_two_player_button(True)
+                pygame.display.flip()
+            else:
+                self.display_two_player_button()
+                pygame.display.flip()
+
+        else:
+            if pygame.Rect(self.START_BUTTON).collidepoint(mouse_pos):
+                self.display_start_button(True)
+                pygame.display.flip()
+            else:
+                self.display_start_button()
+                pygame.display.flip()
+
+    def check_input_click(self, mouse_pos):
+        if pygame.Rect(self.INPUT_ONE).collidepoint(mouse_pos):
+            self.display_player_one_input(True)
+            pygame.display.flip()
+            return 1
+        else:
+            self.display_player_one_input()
+            pygame.display.flip()
+
+
 def main():
-    gui = GUI()
-
-    game = Mancala(gui)
-    game.create_player('Lisa')
-    game.create_player('Layla')
-    gui.start('Lisa', 'Layla')
+    screen = pygame.display.set_mode((W_WIDTH, W_HEIGHT))
+    pygame.display.set_caption('Mancala')
+    start_screen = StartScreen(screen)
     pygame.display.flip()
-
-    # Event loop
+    gui = GUI(screen)
+    game = Mancala(gui)
+    # select game mode
+    game_screen = 0
+    input_1 = False
+    player_one = ''
+    input_2 = False
+    player_two = ''
+    game_mode = None
 
     while True:
-        cur_time = pygame.time.get_ticks()
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
+            if game_screen == 0:
+                if event.type == MOUSEMOTION:
+                    start_screen.check_hover(pygame.mouse.get_pos())
 
-            if event.type == MOUSEBUTTONDOWN:
-                pit = gui.detect_pit_click(game.get_turn())
-                if not pit:
-                    continue
-                game.play_game(game.get_turn(), pit.num)
+                if event.type == MOUSEBUTTONDOWN:
+                    if not game_mode:
+                        game_mode = start_screen.check_click(pygame.mouse.get_pos())
+                    else:
+                        # clicked on start game
+                        if start_screen.check_start_click(pygame.mouse.get_pos()):
+                            if not player_one:
+                                player_one = 'PLAYER ONE'
+                            if not player_two:
+                                player_two = 'PLAYER TWO'
+                            game_screen = 1
+                            screen.fill((0, 0, 0))
+                            game.create_player(player_one)
+                            if game_mode == 'EASY':
+                                gui.start_game(player_one, -1)
+                                game.create_player('0')
+                            elif game_mode == 'HARD':
+                                gui.start_game(player_one, -1)
+                                game.create_player('1')
+                            else:
+                                gui.start_game(player_one, player_two)
+                                game.create_player(player_two)
+                        # check if clicked on input
+                        else:
+                            selected = \
+                                start_screen.check_input_click(pygame.mouse.get_pos())
+                            if not selected and not input_1 and not input_2:
+                                continue
+                            if selected == 1:
+                                input_1 = True
+                            elif input_1:
+                                input_1 = False
+                            if selected == 2:
+                                input_2 = True
+                            elif input_2:
+                                input_2 = False
 
-        if gui.get_pits_changed():
-            for pit in gui.get_pits_changed():
-                if pit.time_showing_changed < cur_time - 1500:
-                    gui.remove_change_display(pit)
+                if event.type == pygame.KEYDOWN:
+                    if game_mode and (input_1 or input_2):
+                        if input_1:
+                            if event.key == pygame.K_BACKSPACE:
+                                player_one = player_one[:-1]
+                            else:
+                                player_one += event.unicode
+                            start_screen.display_player_one_input(True, player_one)
+                            pygame.display.flip()
 
-        pygame.display.flip()
+                        if input_2:
+                            if event.key == pygame.K_BACKSPACE:
+                                player_one = player_one[:-1]
+                            else:
+                                player_one += event.unicode
+                            start_screen.display_player_one_input(True, player_one)
+                            pygame.display.flip()
+
+            # main game
+            if game_screen == 1:
+                cur_time = pygame.time.get_ticks()
+                if event.type == QUIT:
+                    return
+
+                if event.type == MOUSEBUTTONDOWN:
+                    pit = gui.detect_pit_click(game.get_turn())
+                    if not pit:
+                        continue
+                    game.play_game(game.get_turn(), pit.num)
+
+                if gui.get_pits_changed():
+                    for pit in gui.get_pits_changed():
+                        if pit.time_showing_changed < cur_time - 1500:
+                            gui.remove_change_display(pit)
+
+                pygame.display.flip()
 
 
 if __name__ == '__main__':
