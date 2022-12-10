@@ -1,5 +1,6 @@
 import random
 
+
 class Player:
     """
     A player in a Mancala game that has a name and holding representing the
@@ -72,6 +73,5 @@ class EasyAi(Ai):
 
     def choose_move(self):
         moves = self.get_valid_moves()
-        print('moves: ', moves)
         idx = random.randint(0, len(moves) - 1)
         return moves[idx]
