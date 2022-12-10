@@ -1,3 +1,5 @@
+import random
+
 class Player:
     """
     A player in a Mancala game that has a name and holding representing the
@@ -50,11 +52,26 @@ class Player:
         return self._name
 
 
-class HardAi(Player):
-    def __init__(self):
-        super().__init__('HARD AI')
+class Ai(Player):
+    def __init__(self, board_obj, name='AI'):
+        super().__init__(name)
+        self._board_obj = board_obj
+
+    def get_valid_moves(self):
+        return self._board_obj.get_pits_with_seeds(2)
 
 
-class EasyAi(Player):
-    def __init__(self):
-        super().__init__('EASY AI')
+class HardAi(Ai):
+    def __init__(self, board_obj):
+        super().__init__(board_obj, 'HARD AI')
+
+
+class EasyAi(Ai):
+    def __init__(self,board_obj):
+        super().__init__(board_obj, 'EASY AI')
+
+    def choose_move(self):
+        moves = self.get_valid_moves()
+        print('moves: ', moves)
+        idx = random.randint(0, len(moves) - 1)
+        return moves[idx]
