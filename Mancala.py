@@ -9,7 +9,7 @@ class Mancala:
     and winning conditions.
     """
 
-    def __init__(self, gui):
+    def __init__(self, gui=None):
         self._turn = 1
         self._players = []
         self._board = Board(gui)
@@ -41,9 +41,9 @@ class Mancala:
         """
         if len(self._players) < 2:
             if name == -1:
-                player = EasyAi()
+                player = EasyAi(self._board)
             elif name == -2:
-                player = HardAi()
+                player = HardAi(self._board)
             else:
                 player = Player(name)
             self._players.append(player)
@@ -81,6 +81,8 @@ class Mancala:
                 return "Invalid player number"
             if not 1 <= pit <= 6:
                 return "Invalid number for pit index"
+            if player != self._turn:
+                return "Not Your Turn"
 
             # only makes the move if there are seeds in the pit
             if self._board.get_seeds_in_pit(self._turn, pit):
@@ -263,3 +265,4 @@ class Mancala:
     def get_player_names(self):
         if len(self._players) == 2:
             return self._players[0].get_name(), self._players[1].get_name()
+
