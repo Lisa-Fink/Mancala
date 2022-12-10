@@ -101,6 +101,7 @@ class GameScreen(Display):
         self.all_sprites = pygame.sprite.Group()
         self.stores = pygame.sprite.Group()
         self.pits = [pygame.sprite.Group(), pygame.sprite.Group()]
+        self._mode = None
 
         self.initialize_stores()
         self.initialize_pits()
@@ -114,6 +115,9 @@ class GameScreen(Display):
         self.initialize_stores()
         self.initialize_pits()
 
+    def set_mode(self, mode):
+        self._mode = mode
+
     def display_turn(self, name, turn):
         turn_font = pygame.freetype.SysFont("Arial", 30)
 
@@ -125,16 +129,17 @@ class GameScreen(Display):
         turn_font.render_to(self._screen, turn_rect, 'Turn: ' + name,
                             (255, 255, 255))
 
-        # add border to pits on players side
-        for i in range(len(self.pits)):
-            for pit in self.pits[i].sprites():
-                if i + 1 == turn:
-                    if pit.seeds > 0:
-                        pit.can_select = True
+        if (self._mode == 'TWO') or (self._mode != 'TWO' and turn == 1):
+            # add border to pits on players side
+            for i in range(len(self.pits)):
+                for pit in self.pits[i].sprites():
+                    if i + 1 == turn:
+                        if pit.seeds > 0:
+                            pit.can_select = True
+                            self.update(pit)
+                    else:
+                        pit.can_select = False
                         self.update(pit)
-                else:
-                    pit.can_select = False
-                    self.update(pit)
 
     def display_board(self):
         pygame.draw.rect(self._screen, BOARD_BG,

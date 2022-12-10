@@ -63,6 +63,7 @@ def main():
 
                     # Game Mode Screen Click
                     if click and gui.get_screen_index() == 0:
+                        gui.get_game_gui().set_mode(click)
                         gui.next_screen(click)
 
                     # Player Name Screen Click
