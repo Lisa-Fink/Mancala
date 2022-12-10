@@ -22,6 +22,13 @@ class Mancala:
     def get_turn(self):
         return self._turn
 
+    def reset(self):
+        self._turn = 1
+        self._board.reset()
+        self._ended = False
+        self._winner = None
+        self.special1 = False
+
     def create_player(self, name):
         """
         Creates a new player object and stores it in _players data member.
@@ -252,6 +259,10 @@ class Mancala:
         return (self._board.get_seeds_in_store(1),
                 self._board.get_seeds_in_store(2))
 
+    def get_player_names(self):
+        if len(self._players) == 2:
+            return self._players[0].get_name(), self._players[1].get_name()
+
 
 class Board:
     """
@@ -271,6 +282,10 @@ class Board:
 
     def update_gui(self, side, pit, amount):
         self._gui.update_pit(side, pit, amount)
+
+    def reset(self):
+        self._board = [[4, 4, 4, 4, 4, 4, 0], [4, 4, 4, 4, 4, 4, 0]]
+        self._show_changes = True
 
     def flat(self):
         """
