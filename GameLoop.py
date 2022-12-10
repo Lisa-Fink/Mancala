@@ -94,7 +94,8 @@ def main():
 
                         # Go To Main Menu
                         elif click == 1:
-                            game = Mancala(gui.get_game_gui())
+                            game.reset(True)
+                            gui.get_game_gui().reset()
                             gui.show_mode_screen()
 
                         # Exit Game

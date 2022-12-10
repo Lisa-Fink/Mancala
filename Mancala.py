@@ -1,5 +1,3 @@
-from time import sleep
-
 from Player import Player, EasyAi, HardAi
 
 
@@ -22,12 +20,14 @@ class Mancala:
     def get_turn(self):
         return self._turn
 
-    def reset(self):
+    def reset(self, reset_players=False):
         self._turn = 1
         self._board.reset()
         self._ended = False
         self._winner = None
         self.special1 = False
+        if reset_players:
+            self._players = []
 
     def create_player(self, name):
         """
