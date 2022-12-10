@@ -9,17 +9,47 @@ class Board:
     formatted lists.
     """
 
-    def __init__(self, gui):
+    def __init__(self, gui=None):
         self._board = [[4, 4, 4, 4, 4, 4, 0], [4, 4, 4, 4, 4, 4, 0]]
-        self._show_changes = True
+        if gui:
+            self._show_changes = True
+        else:
+            self._show_changes = False
         self._gui = gui
 
+    def set_show_changes(self, show_bool):
+        """
+        Sets _show_changes.
+
+        :param: show_bool: Boolean to set _show_changes
+        """
+        self._show_changes = show_bool
+
     def update_gui(self, side, pit, amount):
+        """
+        Adjusts side and pit in gui to have +/- amount seeds.
+
+        :param side: The side of the board (1 or 2).
+        :param pit: The pit to be cleared (1-6).
+        :param amount: Positive or negative integer of amount of seeds changed.
+        """
         self._gui.update_pit(side, pit, amount)
 
     def reset(self):
         self._board = [[4, 4, 4, 4, 4, 4, 0], [4, 4, 4, 4, 4, 4, 0]]
         self._show_changes = True
+
+    def get_pits_with_seeds(self, side):
+        """
+        Returns a list of the pit numbers on side with values > 0
+
+        :param side: The side of the board (1 or 2).
+        """
+        res = []
+        for i in range(len(self._board[side - 1]) - 1):
+            if self._board[side - 1][i] > 0:
+                res.append(i + 1)
+        return res
 
     def flat(self):
         """
