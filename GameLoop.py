@@ -17,12 +17,37 @@ def check_display_time(gui):
 def main():
     gui = GraphicInterface()
     game = Mancala(gui.get_game_gui())
+    mode = None
+    ai_turn_start = 0
 
     while True:
-        # check if on game screen and there are pits showing changed amount
-        if gui.get_screen_index() == 2 and gui.game_gui_showing_changed():
-            # removes update if passed time limit
-            check_display_time(gui.get_game_gui())
+        # check if on game screen
+        if gui.get_screen_index() == 2:
+
+            if gui.game_gui_showing_changed():
+                # removes update if passed time limit
+                check_display_time(gui.get_game_gui())
+
+            # check if it's player 2's turn and player 2 is Ai
+
+            elif game.get_turn() == 2 and mode != 'TWO':
+                if not ai_turn_start:
+                    ai_turn_start = pygame.time.get_ticks()
+                    continue
+                game.play_game(
+                    2, game.get_player_obj().choose_move())
+                # check if game ended
+                ended = game.get_end_state()
+
+                # updates gui to new turn after move completed
+                if not ended:
+                    gui.get_game_gui().display_turn(
+                        game.get_player_obj().get_name(), game.get_turn())
+                else:
+                    # go to end game screen
+                    winner_str = game.return_winner()
+                    store1, store2 = game.get_stores()
+                    gui.next_screen(winner_str, store1, store2)
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -35,8 +60,11 @@ def main():
             if event.type == MOUSEBUTTONDOWN:
 
                 # Main Game Click
-                if gui.get_screen_index() == 2:
+                if (gui.get_screen_index() == 2 and
+                        (mode == 'TWO' or
+                         (mode != 'TWO' and game.get_turn() == 1))):
                     game_gui = gui.get_screen()
+
                     pit = game_gui.check_click(game.get_turn())
                     if not pit or pit.seeds == 0:
                         continue
@@ -45,12 +73,14 @@ def main():
                         p.can_select = False
                         p.update_display()
                     game.play_game(game.get_turn(), pit.num)
+
                     # check if game ended
                     ended = game.get_end_state()
                     # updates gui to new turn after move completed
                     if not ended:
                         game_gui.display_turn(
                             game.get_player_obj().get_name(), game.get_turn())
+
                     else:
                         # go to end game screen
                         winner_str = game.return_winner()
@@ -63,7 +93,9 @@ def main():
 
                     # Game Mode Screen Click
                     if click and gui.get_screen_index() == 0:
+                        # gui uses mode to determine if pits should be outlined
                         gui.get_game_gui().set_mode(click)
+                        mode = click    # loop uses mode to make Ai turn
                         gui.next_screen(click)
 
                     # Player Name Screen Click
