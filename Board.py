@@ -71,7 +71,7 @@ class Board:
         """
         seeds = self._board[side - 1][pit - 1]
         self._board[side - 1][pit - 1] = 0
-        if self._show_changes:
+        if self._show_changes and seeds > 0:
             self.update_gui(side, pit, -seeds)
         return seeds
 
