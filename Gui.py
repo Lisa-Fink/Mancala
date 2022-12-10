@@ -1,10 +1,8 @@
 import pygame
-from pygame.locals import *
 import pygame.freetype
 
-from Mancala import Mancala
-
 pygame.init()
+
 
 W_WIDTH = 1200
 W_HEIGHT = 800
@@ -104,6 +102,15 @@ class GameScreen(Display):
         self.stores = pygame.sprite.Group()
         self.pits = [pygame.sprite.Group(), pygame.sprite.Group()]
 
+        self.initialize_stores()
+        self.initialize_pits()
+
+    def reset(self):
+        self._change_pits = []
+        self.stores.empty()
+        self.pits[0].empty()
+        self.pits[1].empty()
+        self.all_sprites.empty()
         self.initialize_stores()
         self.initialize_pits()
 
@@ -414,7 +421,7 @@ class PlayerNameScreen(SelectScreen):
                 if not self._player_one_text:
                     self._player_one_text = 'PLAYER 1'
                 if not self._player_two_text:
-                    self._player_two_text = 'PLAYER 1'
+                    self._player_two_text = 'PLAYER 2'
             return self._player_one_text, self._player_two_text
         # clicked back
         if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
@@ -450,6 +457,7 @@ class EndScreen(SelectScreen):
         super().__init__(screen)
 
     def start(self, winner_str, store1, store2):
+        self.display_title()
         self.display_box()
 
         # text
@@ -471,6 +479,15 @@ class EndScreen(SelectScreen):
         pygame.draw.rect(self._screen, (86, 86, 86), self.BOX,
                          border_radius=10)
 
+    def check_click(self, mouse_pos):
+        # clicked on play again
+        if pygame.Rect(self.AGAIN_BUTTON).collidepoint(mouse_pos):
+            return 2
+        if pygame.Rect(self.MENU_BUTTON).collidepoint(mouse_pos):
+            return 1
+        if pygame.Rect(self.QUIT_BUTTON).collidepoint(mouse_pos):
+            return -1
+
 
 class GraphicInterface:
     def __init__(self):
@@ -482,7 +499,6 @@ class GraphicInterface:
         self._screens = [self._select_mode_screen, self._player_screen,
                          self._game_screen, self._end_screen]
         self._current_screen = 0
-
         pygame.display.set_caption('Mancala')
 
         # starts with select game mode screen
@@ -509,89 +525,18 @@ class GraphicInterface:
     def show_mode_screen(self):
         self._current_screen = 0
         self._select_mode_screen.start()
+        pygame.display.flip()
 
     def game_gui_showing_changed(self):
         return len(self._game_screen.get_pits_changed()) > 0
 
+    def show_game_screen(self, name1, name2):
+        self._current_screen = 2
+        self._game_screen.start(name1, name2)
+        pygame.display.flip()
 
-def check_display_time(gui):
-    cur_time = pygame.time.get_ticks()
-    for pit in gui.get_pits_changed():
-        if pit.time_showing_changed < cur_time - 1500:
-            gui.remove_change_display(pit)
-            pygame.display.flip()
-
-
-
-
-def main():
-    gui = GraphicInterface()
-    game = Mancala(gui.get_game_gui())
-    while True:
-        # check if on game screen and there are pits showing changed amount
-        if gui.get_screen_index() == 2 and gui.game_gui_showing_changed():
-            # removes update if passed time limit
-            check_display_time(gui.get_game_gui())
-
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                return
-
-            if (gui.get_screen_index() == 0 or gui.get_screen_index() == 1 or
-               gui.get_screen_index() == 3) and event.type == MOUSEMOTION:
-                gui.get_screen().check_hover(pygame.mouse.get_pos())
-
-            if event.type == MOUSEBUTTONDOWN:
-
-                # Main Game Click
-                if gui.get_screen_index() == 2:
-                    game_gui = gui.get_screen()
-                    pit = game_gui.check_click(game.get_turn())
-                    if not pit or pit.seeds == 0:
-                        continue
-                    # remove border
-                    for p in game_gui.pits[game.get_turn() - 1]:
-                        p.can_select = False
-                        p.update_display()
-                    game.play_game(game.get_turn(), pit.num)
-                    # check if game ended
-                    ended = game.get_end_state()
-                    # updates gui to new turn after move completed
-                    if not ended:
-                        game_gui.display_turn(
-                            game.get_player_obj().get_name(), game.get_turn())
-                    else:
-                        # go to end game screen
-                        winner_str = game.return_winner()
-                        store1, store2 = game.get_stores()
-                        gui.next_screen(winner_str, store1, store2)
-
-                elif gui.get_screen_index() != 2:
-                    click = gui.get_screen().check_click(pygame.mouse.get_pos())
-
-                    # Game Mode Screen Click
-                    if click and gui.get_screen_index() == 0:
-                        gui.next_screen(click)
-
-                    # Player Name Screen Click
-                    elif click and gui.get_screen_index() == 1:
-                        if click == 'BACK':
-                            gui.show_mode_screen()
-                        else:
-                            player_one, player_two = click
-                            game.create_player(player_one)
-                            game.create_player(player_two)
-                            gui.next_screen(player_one, player_two)
-
-            if gui.get_screen_index() == 1 and event.type == pygame.KEYDOWN:
-                key = None
-                if event.key == pygame.K_BACKSPACE:
-                    key = -1
-                else:
-                    key = event.unicode
-                gui.get_screen().process_input_change(key)
-                pygame.display.flip()
+    def show_new_game_screen(self, name1, name2):
+        self._game_screen.reset()
+        self.show_game_screen(name1, name2)
 
 
-if __name__ == '__main__':
-    main()
