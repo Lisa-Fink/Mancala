@@ -184,7 +184,7 @@ class Mancala:
         if last_pit == 7:
             if self._board.has_seeds_on_side(self._turn):
                 self.special1 = True
-                print(f'player {self._turn} take another turn')
+                # print(f'player {self._turn} take another turn')
 
         # check special rule 2, last seed placed in empty pit (pit has 1 seed)
         elif self._board.get_seeds_in_pit(last_side, last_pit) == 1:
@@ -265,4 +265,3 @@ class Mancala:
     def get_player_names(self):
         if len(self._players) == 2:
             return self._players[0].get_name(), self._players[1].get_name()
-
