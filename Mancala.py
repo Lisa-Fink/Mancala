@@ -57,12 +57,13 @@ class Mancala:
         :return: Player object that was created.
         """
         if len(self._players) < 2:
+            player_num = len(self._players) + 1
             if name == -1:
-                player = EasyAi(self._board)
+                player = EasyAi(self._board, player_num)
             elif name == -2:
-                player = HardAi(self._board)
+                player = HardAi(self._board, player_num)
             else:
-                player = Player(name)
+                player = Player(name, player_num)
             self._players.append(player)
             return player
 
