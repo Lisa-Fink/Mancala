@@ -142,6 +142,9 @@ class Board:
         """
         return self._board[player_num - 1][6]
 
+    def store_has_seeds_to_win(self):
+        return self._board[0][6] > 24 or self._board[1][6] > 24
+
     def has_seeds_on_side(self, side):
         """
         Iterates through the pits on the side returning a boolean for if there

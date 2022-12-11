@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from Board import Board
 from Player import Player, EasyAi, HardAi
 
@@ -18,6 +20,12 @@ class Mancala:
         self._winner = None
         self.special1 = False
 
+    def get_board(self):
+        return self._board.get_board()
+
+    def get_board_obj(self):
+        return self._board
+
     def get_turn(self):
         return self._turn
 
@@ -29,6 +37,15 @@ class Mancala:
         self.special1 = False
         if reset_players:
             self._players = []
+
+    def copy_state(self):
+        return (self._turn, deepcopy(self._board.get_board()), self._ended,
+                self._winner, self.special1)
+
+    def restore_state(self, saved_state):
+        (self._turn, board, self._ended,
+         self._winner, self.special1) = saved_state
+        self._board.set_board(board)
 
     def create_player(self, name):
         """
