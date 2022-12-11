@@ -80,6 +80,10 @@ class HardAi(Ai):
         choice.
         """
         moves = self.get_valid_moves()
+        # optimization for 1 move. (will never be called if 0 moves)
+        if len(moves) == 1:
+            return moves[0]
+
         depth = 8
 
         # make fake game to simulate moves on
@@ -107,11 +111,11 @@ class HardAi(Ai):
         for i in range(1, len(ratings)):
             if ratings[i] > ratings[max_idx[0]]:
                 max_idx = [i]
-            if ratings[i] == ratings[max_idx[0]]:
+            elif ratings[i] == ratings[max_idx[0]]:
                 max_idx.append(i)
         if len(max_idx) > 1:
             # pick a random index if they are equally rated
-            return moves[max_idx[random.randint(0, len(max_idx) - 1)]]
+            return moves[max_idx[random.randint(0, (len(max_idx) - 1))]]
         return moves[max_idx[0]]
 
     def minimax(self, game, depth, alpha, beta):
