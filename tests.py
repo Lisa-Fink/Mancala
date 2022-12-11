@@ -1,6 +1,8 @@
 from Mancala import Mancala, Board, Player
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+
+from Player import HardAi
 
 
 class MancalaTest(unittest.TestCase):
@@ -488,6 +490,84 @@ class PlayerTests(unittest.TestCase):
         self.assertEqual(6, move)
 
 
+class HardAiTests(unittest.TestCase):
+    def test_choose_move_calls_minimax_correct_times(self):
+        board = Board()
+        ai = HardAi(board, 2)
+
+        ai.minimax = MagicMock()
+        ai.minimax.return_value = 100
+
+        move = ai.choose_move(Mancala)
+        self.assertEqual(6, ai.minimax.call_count)
+
+    @patch('random.randint')
+    def test_choose_move_all_equal_ratings(self, random_call):
+        board = Board()
+        ai = HardAi(board, 2)
+
+        ai.minimax = MagicMock()
+        ai.minimax.return_value = 100
+
+        for i in range(6):
+            num = i
+            random_call.return_value = num
+            for _ in range(10):
+                move = ai.choose_move(Mancala)
+                self.assertEqual(num + 1, move)
+
+    @patch('random.randint')
+    def test_choose_move_some_equal_ratings(self, random_call):
+        board = Board()
+
+        def helper(ret, res):
+            ai = HardAi(board, 2)
+            ai.minimax = MagicMock()
+            ai.minimax.side_effect = [-100, -100, 0, 2, 2, 2]
+            # makes max_idx = [3, 4, 5] -> moves[max_idx[0]] -> moves[3] ->
+            # moves is [1, 2, 3, 4, 5, 6] index 3 is 4
+            random_call.return_value = ret
+            move = ai.choose_move(Mancala)
+            self.assertEqual(res, move)
+
+        helper(0, 4)
+        helper(1, 5)
+        helper(2, 6)
+        # tests max_idx created in choose_move is correct length
+        with self.assertRaises(IndexError):
+            helper(3, 0)
+
+    def test_choose_move_different_ratings(self):
+        board = Board()
+        ai = HardAi(board, 2)
+
+        ai.minimax = MagicMock()
+
+        ai.minimax.side_effect = [1, 0, -100, 100, 20, 45]
+        # idx of max is 3. moves = [1, 2, 3, 4, 5, 6] so idx 3 of moves is 4
+        self.assertEqual(4, ai.choose_move(Mancala))
+        # ascending
+        ai.minimax.side_effect = [1, 2, 3, 4, 5, 6]
+        self.assertEqual(6, ai.choose_move(Mancala))
+        # descending
+        ai.minimax.side_effect = [6, 5, 4, 3, 2, 1]
+        self.assertEqual(1, ai.choose_move(Mancala))
+        # multiple repeats that are max
+        ai.minimax.side_effect = [6, 6, 7, 7, 8, 9]
+        self.assertEqual(6, ai.choose_move(Mancala))
+
+    def test_choose_move_one_move(self):
+        board = Board()
+        board.set_board([[0,0,0,0,0,0,0],[0,1,0,0,0,0,0]])
+        ai = HardAi(board, 2)
+        self.assertEqual(2, ai.choose_move(Mancala))
+
+    def test_choose_move_ai_player_one(self):
+        board = Board()
+        ai = HardAi(board, 1)
+        ai.minimax = MagicMock()
+        ai.minimax.side_effect = [100, 0, 0, 0, 0, 45]
+        self.assertEqual(1, ai.choose_move(Mancala))
 
 
 
