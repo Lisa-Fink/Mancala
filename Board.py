@@ -25,6 +25,12 @@ class Board:
         """
         self._show_changes = show_bool
 
+    def get_board(self):
+        return self._board
+
+    def set_board(self, board):
+        self._board = board
+
     def update_gui(self, side, pit, amount):
         """
         Adjusts side and pit in gui to have +/- amount seeds.
@@ -37,7 +43,8 @@ class Board:
 
     def reset(self):
         self._board = [[4, 4, 4, 4, 4, 4, 0], [4, 4, 4, 4, 4, 4, 0]]
-        self._show_changes = True
+        if self._gui:
+            self._show_changes = True
 
     def get_pits_with_seeds(self, side):
         """
