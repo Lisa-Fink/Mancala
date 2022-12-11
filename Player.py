@@ -1,3 +1,4 @@
+import math
 import random
 from copy import deepcopy
 
@@ -59,8 +60,10 @@ class Ai(Player):
         super().__init__(name)
         self._board_obj = board_obj
 
-    def get_valid_moves(self, side=2):
-        return self._board_obj.get_pits_with_seeds(side)
+    def get_valid_moves(self, side=2, board=None):
+        if not board:
+            board = self._board_obj
+        return board.get_pits_with_seeds(side)
 
 
 class HardAi(Ai):
@@ -69,35 +72,27 @@ class HardAi(Ai):
         self.board_copy = board_obj
 
     def choose_move(self, MancalaClass):
-        print('hard ai choose')
-        print('board', self._board_obj.get_board())
-
-        original_board_state = deepcopy(self._board_obj.get_board())
-
         moves = self.get_valid_moves()
-        print('moves ', moves)
+        depth = 8
+
         # make fake game to simulate moves on
         game = MancalaClass()
         game.create_player('1')
         game.create_player('2')
-        game.toggle_turn()
-
-        game._board.set_board(self._board_obj.get_board())
-        self._board_obj = game._board
+        # set fake game state equal to current game state
+        # with copy of current board
+        state = (2, deepcopy(self._board_obj.get_board()), False,
+                 None, False)
+        game.restore_state(state)
 
         ratings = [0] * len(moves)
         for i, move in enumerate(moves):
-            print('trying move: 2, ', move)
+            saved = game.copy_state()
             game.play_game(2, move)
-            rating = self.get_move_rating(game)
-            ratings[i] = rating
-            game.reset()
-            game.toggle_turn()
-            game._board.set_board(deepcopy(original_board_state))
-
-        # restore board_obj
-        self._board_obj = self.board_copy
-        self._board_obj.set_board(original_board_state)
+            cur_eval = self.minimax(game, depth,
+                                    float(-math.inf), float(math.inf))
+            ratings[i] = cur_eval
+            game.restore_state(saved)
 
         max_idx = [0]
         for i in range(1, len(ratings)):
@@ -110,30 +105,51 @@ class HardAi(Ai):
             return moves[max_idx[random.randint(0, len(max_idx) - 1)]]
         return moves[max_idx[0]]
 
-    def get_move_rating(self, game, depth=1):
-        moves = self.get_valid_moves(game.get_turn())
-        store1 = self._board_obj.get_seeds_in_store(1)
-        store2 = self._board_obj.get_seeds_in_store(2)
-        if (depth > 6 or not moves or store1 > 24 or store2 > 24 or
-                (store1 == 24 and store2 == 24)):
-            if self._board_obj.get_seeds_in_store(2) > 24:
-                return 100
-            if store1 == 24 and store2 == 24:
-                return 0
-            return store2 - store1
-        copy_board_state = deepcopy(self._board_obj.get_board())
+    def minimax(self, game, depth, alpha, beta):
+        if (depth == 0 or game.get_end_state() or
+                game.get_board_obj().store_has_seeds_to_win()):
+            return self.evaluation(game.get_board())
         turn = game.get_turn()
-        total = 0
-        for move in moves:
-            game.play_game(turn, move)
-            game.reset()
-            if turn == 2:
-                game.toggle_turn()
-            game._board.set_board(deepcopy(copy_board_state))
-            if (turn == 2 and self._board_obj.get_seeds_in_store(2) <= store2):
-                continue
-            total += self.get_move_rating(game, depth+1)
-        return total
+        moves = self.get_valid_moves(turn, game.get_board_obj())
+        if not moves:
+            return self.evaluation(game.get_board())
+        # maximising
+        if turn == 2:
+            max_eval = float(-math.inf)
+            for move in moves:
+                saved = game.copy_state()
+                game.play_game(turn, move)
+                cur_eval = self.minimax(game, depth - 1, alpha, beta)
+                game.restore_state(saved)
+                max_eval = max(max_eval, cur_eval)
+                alpha = max(alpha, cur_eval)
+                if beta <= alpha:
+                    break
+            return max_eval
+        # minimizing
+        else:
+            min_eval = float(math.inf)
+            for move in moves:
+                saved = game.copy_state()
+                game.play_game(turn, move)
+                cur_eval = self.minimax(game, depth - 1, alpha, beta)
+                game.restore_state(saved)
+                min_eval = min(min_eval, cur_eval)
+                beta = min(beta, cur_eval)
+                if beta <= alpha:
+                    break
+            return min_eval
+
+    def evaluation(self, board):
+        store1 = board[0][6]
+        store2 = board[1][6]
+        if store2 > 24:
+            return 100
+        if store1 > 24:
+            return -100
+        if store1 == 24 and store2 == 24:
+            return 0
+        return store2 - store1
 
 
 class EasyAi(Ai):
