@@ -421,12 +421,12 @@ class PlayerNameScreen(SelectScreen):
                 self._player_two_text = -1
             if self._game_mode == 'HARD':
                 self._player_two_text = -2
-            else:
-                # handle empty input
-                if not self._player_one_text:
-                    self._player_one_text = 'PLAYER 1'
-                if not self._player_two_text:
-                    self._player_two_text = 'PLAYER 2'
+
+            # handle empty input
+            if not self._player_one_text:
+                self._player_one_text = 'PLAYER 1'
+            if not self._player_two_text:
+                self._player_two_text = 'PLAYER 2'
             return self._player_one_text, self._player_two_text
         # clicked back
         if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
