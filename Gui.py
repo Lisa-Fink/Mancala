@@ -351,6 +351,14 @@ class PlayerNameScreen(SelectScreen):
 
         self.display_button(self.START_BUTTON, 'START GAME', 20, 12)
         self.display_button(self.BACK_BUTTON, 'GO BACK', 37, 12)
+
+        # resets player one or two text if it was previously set as an int from
+        # being an Ai. Otherwise, raises an error when displaying input box
+        if isinstance(self._player_two_text, int):
+            self._player_two_text = ''
+        if isinstance(self._player_one_text, int):
+            self._player_one_text = ''
+
         if game_mode == 'TWO':
             self.display_player_two_prompt()
             self.display_player_two_input()
