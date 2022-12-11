@@ -34,8 +34,14 @@ def main():
                 if not ai_turn_start:
                     ai_turn_start = pygame.time.get_ticks()
                     continue
+                arg = None
+                if mode == 'HARD':
+                    arg = Mancala
+                move = game.get_player_obj().choose_move(arg)
+                print('move: ', move)
                 game.play_game(
-                    2, game.get_player_obj().choose_move())
+                    2, move)
+                print('called play, turn is now: ', game.get_turn())
                 # check if game ended
                 ended = game.get_end_state()
 
