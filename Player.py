@@ -5,10 +5,10 @@ from copy import deepcopy
 
 class Player:
     """
-    A player in a Mancala game that has a name and holding representing the
-    seeds in the players hand. Has methods for picking up and dropping seeds
-    which update the amount stored in _holding, as well as methods to return
-    the values stored in its data members.
+    A player in a Mancala game that has a name, player number, and holding
+    representing the seeds in the players hand. Has methods for picking up and
+    dropping seeds which update the amount stored in _holding, as well as
+    methods to return the values stored in its data members.
     """
 
     def __init__(self, name, player_num):
@@ -57,11 +57,22 @@ class Player:
 
 
 class Ai(Player):
+    """
+    An Ai player in a Mancala game that stores a board object and a method to
+    get a list of valid moves from a board object.
+    """
     def __init__(self, board_obj, player_num, name='AI'):
         super().__init__(name, player_num)
         self._board_obj = board_obj
 
     def get_valid_moves(self, side=None, board=None):
+        """
+        Returns a list of valid moves on side and board (defaulting to the
+        player's side and this instances board object data member if no
+        parameter is given).
+
+        :return: List of integers representing the pit numbers of valid moves
+        """
         if not side:
             side = self._player_num
         if not board:
@@ -70,14 +81,20 @@ class Ai(Player):
 
 
 class HardAi(Ai):
+    """
+    A Hard Ai that uses a minimax algorithm with alpha beta pruning to choose
+    a move in a Mancala game.
+    """
     def __init__(self, board_obj, player_num):
         super().__init__(board_obj, player_num, 'HARD AI')
 
     def choose_move(self, MancalaClass):
         """
-        Chooses a move using minimax. Helper method that sets up minimax with
-        a copy of the game and board, and gets the pit number of the final
-        choice.
+        Chooses a move for this player using minimax. Helper method that sets
+        up minimax with a copy of the game and board, and gets the pit number
+        of the final choice.
+
+        :return: Integer of the pit number/move to make.
         """
         moves = self.get_valid_moves()
         # optimization for 1 move. (will never be called if 0 moves)
@@ -121,7 +138,10 @@ class HardAi(Ai):
     def minimax(self, game, depth, alpha, beta):
         """
         Recursive method that evaluates each move returning the min or max
-        evaluation based on turn.
+        evaluation based on if it's the player's or opponent's turn.
+
+        :return: Integer for the rating/evaluation of making all possible moves
+                 until the given depth
         """
         if (depth == 0 or game.get_end_state() or
                 game.get_board_obj().store_has_seeds_to_win()):
@@ -163,6 +183,9 @@ class HardAi(Ai):
         """
         Evaluates board, returning a higher integer for boards in favor of
         the player.
+
+        :return: Integer representing the state of the board with higher
+                 results being in favor of this player.
         """
         opponent_num = 1
         if self._player_num == 1:
@@ -179,10 +202,19 @@ class HardAi(Ai):
 
 
 class EasyAi(Ai):
+    """
+    An Easy Ai i that chooses moves randomly based on a Mancala board.
+    """
     def __init__(self, board_obj, player_num):
         super().__init__(board_obj, player_num, 'EASY AI')
 
     def choose_move(self):
+        """
+        Randomly selects a move for this player by generating a list of all
+        valid moves and picking a random index number.
+
+        :return: Integer for the pit number/move.
+        """
         moves = self.get_valid_moves()
         idx = random.randint(0, len(moves) - 1)
         return moves[idx]
