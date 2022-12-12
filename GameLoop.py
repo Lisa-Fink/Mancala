@@ -54,7 +54,8 @@ def main():
                 return
 
             if (gui.get_screen_index() == 0 or gui.get_screen_index() == 1 or
-               gui.get_screen_index() == 3) and event.type == MOUSEMOTION:
+               gui.get_screen_index() == 3 or gui.get_screen_index() == 4) and \
+                    event.type == MOUSEMOTION:
                 gui.get_screen().check_hover(pygame.mouse.get_pos())
 
             if event.type == MOUSEBUTTONDOWN:
@@ -93,16 +94,24 @@ def main():
 
                     # Game Mode Screen Click
                     if click and gui.get_screen_index() == 0:
+                        if click == 'INSTRUCTIONS':
+                            gui.show_instructions_screen()
+                            continue
                         # gui uses mode to determine if pits should be outlined
                         gui.get_game_gui().set_mode(click)
                         mode = click    # loop uses mode to make Ai turn
                         gui.next_screen(click)
 
+                    # Instruction Screen Click
+                    if click and gui.get_screen_index() == 4:
+                        if click == 'GAME MENU':
+                            gui.show_mode_screen()
+
                     # Player Name Screen Click
                     elif click and gui.get_screen_index() == 1:
                         if click == 'BACK':
                             gui.show_mode_screen()
-                        else:
+                        elif len(click) == 2:
                             player_one_name, player_two_name = click
                             game.create_player(player_one_name)
                             game.create_player(player_two_name)

@@ -3,7 +3,6 @@ import pygame.freetype
 
 pygame.init()
 
-
 W_WIDTH = 1200
 W_HEIGHT = 800
 BOARD_BG = (255, 194, 136)
@@ -297,6 +296,8 @@ class GameModeScreen(SelectScreen):
                    400, BUTTON_WIDTH, BUTTON_HEIGHT)
     HARD_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH // 2,
                    500, BUTTON_WIDTH, BUTTON_HEIGHT)
+    INSTRUCTION_BUTTON = (W_WIDTH // 2 - BUTTON_WIDTH // 2,
+                          140, BUTTON_WIDTH, BUTTON_HEIGHT)
 
     def __init__(self, screen):
         super().__init__(screen)
@@ -309,9 +310,10 @@ class GameModeScreen(SelectScreen):
         self.display_player_options()
 
     def display_instructions(self):
+        self.display_button(self.INSTRUCTION_BUTTON, 'How To Play', 20, 14)
         font = pygame.font.Font('Arial.ttf', 34)
         text = font.render('Please Select a Game Mode', True, (180, 190, 170))
-        self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 200))
+        self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 230))
 
     def display_player_options(self):
         self.display_button(self.TWO_PLAYER_BUTTON, '2 PLAYERS', 22, 14)
@@ -325,6 +327,31 @@ class GameModeScreen(SelectScreen):
             return 'HARD'
         if pygame.Rect(self.TWO_PLAYER_BUTTON).collidepoint(mouse_pos):
             return 'TWO'
+        if pygame.Rect(self.INSTRUCTION_BUTTON).collidepoint(mouse_pos):
+            return 'INSTRUCTIONS'
+
+
+class InstructionsScreen(SelectScreen):
+    BUTTON_WIDTH = 180
+    BUTTON_HEIGHT = 60
+    INSTRUCTIONS_IMG = pygame.image.load('instructions.png')
+    BACK_BUTTON = (900,
+                   20, BUTTON_WIDTH, BUTTON_HEIGHT)
+
+    def __init__(self, screen):
+        super().__init__(screen)
+
+    def display_instruction_img(self):
+        self._screen.blit(self.INSTRUCTIONS_IMG, (0, 0))
+
+    def start(self):
+        self._screen.fill((0, 0, 0))
+        self.display_instruction_img()
+        self.display_button(self.BACK_BUTTON, 'GO BACK', 30, 14)
+
+    def check_click(self, mouse_pos):
+        if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
+            return 'GAME MENU'
 
 
 class PlayerNameScreen(SelectScreen):
@@ -487,9 +514,9 @@ class EndScreen(SelectScreen):
         self.display_winner_text('Player 2: ' + str(store2) + ' seeds', 165)
 
         # buttons
-        self.display_button(self.AGAIN_BUTTON, 'PLAY AGAIN', 26, 12)
-        self.display_button(self.MENU_BUTTON, 'MAIN MENU', 26, 12)
-        self.display_button(self.QUIT_BUTTON, 'EXIT GAME', 30, 12)
+        self.display_button(self.AGAIN_BUTTON, 'PLAY AGAIN', 18, 14)
+        self.display_button(self.MENU_BUTTON, 'MAIN MENU', 18, 14)
+        self.display_button(self.QUIT_BUTTON, 'EXIT GAME', 22, 14)
 
     def display_winner_text(self, winner_str, offset_y):
         font = pygame.font.Font('Arial.ttf', 34)
@@ -517,8 +544,11 @@ class GraphicInterface:
         self._player_screen = PlayerNameScreen(self._screen)
         self._game_screen = GameScreen(self._screen)
         self._end_screen = EndScreen(self._screen)
+        self._instructions = InstructionsScreen(self._screen)
         self._screens = [self._select_mode_screen, self._player_screen,
-                         self._game_screen, self._end_screen]
+                         self._game_screen, self._end_screen,
+                         self._instructions]
+
         self._current_screen = 0
         pygame.display.set_caption('Mancala')
 
@@ -527,7 +557,7 @@ class GraphicInterface:
         pygame.display.flip()
 
     def next_screen(self, *args):
-        if self._current_screen < 3:
+        if self._current_screen < 4:
             self._current_screen += 1
         else:
             self._current_screen = 0
@@ -559,5 +589,9 @@ class GraphicInterface:
     def show_new_game_screen(self, name1, name2):
         self._game_screen.reset()
         self.show_game_screen(name1, name2)
+        pygame.display.flip()
 
-
+    def show_instructions_screen(self):
+        self._current_screen = 4
+        self._instructions.start()
+        pygame.display.flip()
