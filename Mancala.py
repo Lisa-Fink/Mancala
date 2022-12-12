@@ -208,8 +208,11 @@ class Mancala:
         elif self._board.get_seeds_in_pit(last_side, last_pit) == 1:
             # take opposite seeds
             player = self.get_player_obj()
-            player.pickup_seeds(self._board.clear_opposite
-                                (last_side, last_pit))
+            opp_seeds = self._board.clear_opposite(last_side, last_pit)
+            # if there are no seeds on the opposite side do nothing
+            if not opp_seeds:
+                return
+            player.pickup_seeds(opp_seeds)
             # take last seed placed
             player.pickup_seeds(self._board.clear_pit(last_side, last_pit))
             # put in store (pit 7 on player's side equal to turn)
