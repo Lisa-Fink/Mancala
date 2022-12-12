@@ -67,7 +67,15 @@ class Hole(pygame.sprite.Sprite):
 
     def change_seed_count(self, amount):
         self.change = amount
+        pre = self.seeds
         self.seeds += amount
+
+        # adjusts text center if adding a digit
+        if pre < 10 and self.seeds >= 9:
+            self.text_rect.x -= 10
+        elif pre >= 10 and self.seeds < 9:
+            self.text_rect.x += 10
+
         self.time_showing_changed = pygame.time.get_ticks()
 
 
