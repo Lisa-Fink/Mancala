@@ -52,7 +52,8 @@ class Mancala:
         Creates a new player object and stores it in _players data member.
         Only creates a player if there are less than 2.
 
-        :param name: String of the players name.
+        :param name: String of the players name or integer for Ai difficulty
+                     -1 is easy, -2 is hard.
 
         :return: Player object that was created.
         """
