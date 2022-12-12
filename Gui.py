@@ -19,7 +19,7 @@ STORE_HEIGHT = 310
 PLAYER2_PIT_TOP = GAP + BOARD_TOP
 PLAYER1_PIT_TOP = GAP + BOARD_TOP + STORE_HEIGHT - PIT_HEIGHT
 SEED_FONT_COLOR = (0, 0, 0)
-FONT = pygame.freetype.SysFont("Arial", 40)
+FONT = pygame.freetype.Font('Arial.ttf', 38)
 
 
 class Hole(pygame.sprite.Sprite):
@@ -30,8 +30,8 @@ class Hole(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         pygame.draw.rect(self.image, PIT_BG, self.rect, 0, border_radius=40)
         self.text_rect = self.rect.copy()
-        self.text_rect.x = self.text_rect.centerx - 10
-        self.text_rect.y = self.text_rect.centery - 15
+        self.text_rect.x = self.text_rect.centerx - 12
+        self.text_rect.y = self.text_rect.centery - 12
 
         self.rect.x = left
         self.rect.y = top
@@ -61,7 +61,7 @@ class Hole(pygame.sprite.Sprite):
         sign = ""
         if amount > 0:
             sign = '+'
-        change_font = pygame.freetype.SysFont("Arial", 20)
+        change_font = pygame.freetype.Font('Arial.ttf', 18)
         change_font.render_to(self.image, self.image.get_rect(),
                               sign + str(amount))
 
@@ -71,10 +71,10 @@ class Hole(pygame.sprite.Sprite):
         self.seeds += amount
 
         # adjusts text center if adding a digit
-        if pre < 10 and self.seeds >= 9:
-            self.text_rect.x -= 10
-        elif pre >= 10 and self.seeds < 9:
-            self.text_rect.x += 10
+        if pre <= 9 and self.seeds > 9:
+            self.text_rect.x -= 8
+        elif pre >= 10 and self.seeds < 10:
+            self.text_rect.x += 8
 
         self.time_showing_changed = pygame.time.get_ticks()
 
@@ -96,7 +96,7 @@ class Display:
         self._screen = screen
 
     def display_title(self):
-        font = pygame.font.SysFont('Arial', 64, True)
+        font = pygame.font.Font('Arial.ttf', 62)
         text = font.render('Mancala', True, (255, 255, 255))
         self._screen.blit(text, ((W_WIDTH // 2) - text.get_size()[0] // 2,
                                  GAP))
@@ -127,7 +127,7 @@ class GameScreen(Display):
         self._mode = mode
 
     def display_turn(self, name, turn):
-        turn_font = pygame.freetype.SysFont("Arial", 30)
+        turn_font = pygame.freetype.Font('Arial.ttf', 28)
 
         turn_rect = pygame.Rect(10, 100,
                                 W_WIDTH // 3, 40)
@@ -155,7 +155,7 @@ class GameScreen(Display):
                                      BOARD_WIDTH, 400), 0, 140)
 
     def display_players(self, player1, player2):
-        player_font = pygame.freetype.SysFont("Arial", 30)
+        player_font = pygame.freetype.Font('Arial.ttf', 28)
 
         player1_rect = pygame.Rect(10, 20,
                                    W_WIDTH // 3, 40)
@@ -271,7 +271,7 @@ class SelectScreen(Display):
             self._buttons.append((rect, text, (offset_x, offset_y)))
 
     def display_button_text(self, rect, text, offset_x, offset_y):
-        font = pygame.font.SysFont('Arial', 28)
+        font = pygame.font.Font('Arial.ttf', 26)
         text = font.render(text, True, (0, 0, 0))
         self._screen.blit(text, (rect[0] + offset_x,
                                  rect[1] + offset_y))
@@ -309,14 +309,14 @@ class GameModeScreen(SelectScreen):
         self.display_player_options()
 
     def display_instructions(self):
-        font = pygame.font.SysFont('Arial', 36)
+        font = pygame.font.Font('Arial.ttf', 34)
         text = font.render('Please Select a Game Mode', True, (180, 190, 170))
         self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 200))
 
     def display_player_options(self):
-        self.display_button(self.TWO_PLAYER_BUTTON, '2 PLAYERS', 30, 12)
-        self.display_button(self.EASY_BUTTON, 'VS EASY AI', 30, 12)
-        self.display_button(self.HARD_BUTTON, 'VS HARD AI', 30, 12)
+        self.display_button(self.TWO_PLAYER_BUTTON, '2 PLAYERS', 22, 14)
+        self.display_button(self.EASY_BUTTON, 'VS EASY AI', 21, 14)
+        self.display_button(self.HARD_BUTTON, 'VS HARD AI', 19, 14)
 
     def check_click(self, mouse_pos):
         if pygame.Rect(self.EASY_BUTTON).collidepoint(mouse_pos):
@@ -357,8 +357,8 @@ class PlayerNameScreen(SelectScreen):
         self.display_player_one_prompt()
         self.display_player_one_input()
 
-        self.display_button(self.START_BUTTON, 'START GAME', 20, 12)
-        self.display_button(self.BACK_BUTTON, 'GO BACK', 37, 12)
+        self.display_button(self.START_BUTTON, 'START GAME', 8, 14)
+        self.display_button(self.BACK_BUTTON, 'GO BACK', 30, 14)
 
         # resets player one or two text if it was previously set as an int from
         # being an Ai. Otherwise, raises an error when displaying input box
@@ -396,7 +396,7 @@ class PlayerNameScreen(SelectScreen):
             bg = (200, 200, 200)
         pygame.draw.rect(self._screen, bg,
                          input_one_rect, border_radius=10)
-        font = pygame.font.SysFont('Arial', 32)
+        font = pygame.font.Font('Arial.ttf', 30)
         text_surface = font.render(self._player_one_text, True, (0, 0, 0))
         # set width so text cannot go outside input_one_rect
         input_one_rect.w = max(100, text_surface.get_width() + 10)
@@ -410,7 +410,7 @@ class PlayerNameScreen(SelectScreen):
             bg = (200, 200, 200)
         pygame.draw.rect(self._screen, bg,
                          input_two_rect, border_radius=10)
-        font = pygame.font.SysFont('Arial', 32)
+        font = pygame.font.Font('Arial.ttf', 30)
         text_surface = font.render(self._player_two_text, True, (0, 0, 0))
         # set width so text cannot go outside input_one_rect
         input_two_rect.w = max(100, text_surface.get_width() + 10)
@@ -418,13 +418,13 @@ class PlayerNameScreen(SelectScreen):
                           (input_two_rect.x + 10, input_two_rect.y + 10))
 
     def display_player_one_prompt(self):
-        font = pygame.font.SysFont('Arial', 36)
+        font = pygame.font.Font('Arial.ttf', 34)
         text = font.render('Please Enter Player One\'s Name',
                            True, (180, 190, 170))
         self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 200))
 
     def display_player_two_prompt(self):
-        font = pygame.font.SysFont('Arial', 36)
+        font = pygame.font.Font('Arial.ttf', 34)
         text = font.render('Please Enter Player Two\'s Name',
                            True, (180, 190, 170))
         self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 360))
@@ -492,7 +492,7 @@ class EndScreen(SelectScreen):
         self.display_button(self.QUIT_BUTTON, 'EXIT GAME', 30, 12)
 
     def display_winner_text(self, winner_str, offset_y):
-        font = pygame.font.SysFont('Arial', 36)
+        font = pygame.font.Font('Arial.ttf', 34)
         text = font.render(winner_str, True, (180, 190, 170))
         self._screen.blit(text, (self.BOX[0] + 45, self.BOX[1] + offset_y))
 
