@@ -58,8 +58,8 @@ class Player:
 
 class Ai(Player):
     """
-    An Ai player in a Mancala game that stores a board object and a method to
-    get a list of valid moves from a board object.
+    An Ai player in a Mancala game that stores a board object and has a method
+    to get a list of valid moves from a board object.
     """
     def __init__(self, board_obj, player_num, name='AI'):
         super().__init__(name, player_num)
@@ -141,7 +141,7 @@ class HardAi(Ai):
         evaluation based on if it's the player's or opponent's turn.
 
         :return: Integer for the rating/evaluation of making all possible moves
-                 until the given depth
+                 until the given depth.
         """
         if (depth == 0 or game.get_end_state() or
                 game.get_board_obj().store_has_seeds_to_win()):

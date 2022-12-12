@@ -21,15 +21,34 @@ class Mancala:
         self.special1 = False
 
     def get_board(self):
+        """
+        Returns the board for this game.
+
+        :return: Board (7x7 List of integers) of _board object data member.
+        """
         return self._board.get_board()
 
     def get_board_obj(self):
+        """
+        :return: Board object of _board data member.
+        """
         return self._board
 
     def get_turn(self):
+        """
+        :return: Integer of _turn data member (1 or 2)
+        """
         return self._turn
 
     def reset(self, reset_players=False):
+        """
+        Sets data members to values equal to an initial state, keeping players
+        if not given as a parameter.
+
+        :param: reset_players: Boolean for if players should be removed.
+                               Defaults to False.
+
+        """
         self._turn = 1
         self._board.reset()
         self._ended = False
@@ -39,10 +58,24 @@ class Mancala:
             self._players = []
 
     def copy_state(self):
+        """
+        Returns a tuple representing the state of game, containing all the
+        values necessary to return Game to the current state.
+
+        :return: Tuple containing turn (1 or 2), board (7x7 list of integers),
+        ended Boolean, winner string or None, special1 Boolean.
+        """
         return (self._turn, deepcopy(self._board.get_board()), self._ended,
                 self._winner, self.special1)
 
     def restore_state(self, saved_state):
+        """
+        Sets data members to values passed in saved_state
+
+        :param saved_state: Tuple containing turn (1 or 2),
+        board (7x7 list of integers), ended Boolean, winner string or None,
+        special1 Boolean.
+        """
         (self._turn, board, self._ended,
          self._winner, self.special1) = saved_state
         self._board.set_board(board)
@@ -285,5 +318,11 @@ class Mancala:
                 self._board.get_seeds_in_store(2))
 
     def get_player_names(self):
+        """
+        Returns the player's names.
+
+        :return: Tuple containing string of player 1's name and string of
+                 player 2's name.
+        """
         if len(self._players) == 2:
             return self._players[0].get_name(), self._players[1].get_name()

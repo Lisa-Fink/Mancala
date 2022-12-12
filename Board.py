@@ -21,14 +21,22 @@ class Board:
         """
         Sets _show_changes.
 
-        :param: show_bool: Boolean to set _show_changes
+        :param: show_bool: Boolean to set _show_changes.
         """
         self._show_changes = show_bool
 
     def get_board(self):
+        """
+        :return: List for the _board, 7x7 list of integers.
+        """
         return self._board
 
     def set_board(self, board):
+        """
+        Sets _board to a new list.
+
+        :paran: board: 7x7 List of integers.
+        """
         self._board = board
 
     def update_gui(self, side, pit, amount):
@@ -143,6 +151,9 @@ class Board:
         return self._board[player_num - 1][6]
 
     def store_has_seeds_to_win(self):
+        """
+        :return: Boolean for if one of the stores has over 24 seeds.
+        """
         return self._board[0][6] > 24 or self._board[1][6] > 24
 
     def has_seeds_on_side(self, side):
