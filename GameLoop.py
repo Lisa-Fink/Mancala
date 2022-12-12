@@ -9,7 +9,7 @@ from Mancala import Mancala
 def check_display_time(gui):
     cur_time = pygame.time.get_ticks()
     for pit in gui.get_pits_changed():
-        if pit.time_showing_changed < cur_time - 1500:
+        if pit.time_showing_changed < cur_time - 1000:
             gui.remove_change_display(pit)
             pygame.display.flip()
 
@@ -18,7 +18,6 @@ def main():
     gui = GraphicInterface()
     game = Mancala(gui.get_game_gui())
     mode = None
-    ai_turn_start = 0
 
     while True:
         # check if on game screen
@@ -28,20 +27,15 @@ def main():
                 # removes update if passed time limit
                 check_display_time(gui.get_game_gui())
 
-            # check if it's player 2's turn and player 2 is Ai
-
+            # check if it is an Ai's turn (set up for Ai always as player 2)
             elif game.get_turn() == 2 and mode != 'TWO':
-                if not ai_turn_start:
-                    ai_turn_start = pygame.time.get_ticks()
-                    continue
                 arg = None
                 if mode == 'HARD':
                     arg = Mancala
-                move = game.get_player_obj().choose_move(arg)
-                print('move: ', move)
+                move = game.get_player_obj().choose_move(arg) if arg else \
+                    game.get_player_obj().choose_move()
                 game.play_game(
                     2, move)
-                print('called play, turn is now: ', game.get_turn())
                 # check if game ended
                 ended = game.get_end_state()
 
