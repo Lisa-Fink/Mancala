@@ -24,7 +24,7 @@ class Mancala:
         """
         Returns the board for this game.
 
-        :return: Board (7x7 List of integers) of _board object data member.
+        :return: Board (2x7 List of integers) of _board object data member.
         """
         return self._board.get_board()
 
@@ -62,7 +62,7 @@ class Mancala:
         Returns a tuple representing the state of game, containing all the
         values necessary to return Game to the current state.
 
-        :return: Tuple containing turn (1 or 2), board (7x7 list of integers),
+        :return: Tuple containing turn (1 or 2), board (2x7 list of integers),
         ended Boolean, winner string or None, special1 Boolean.
         """
         return (self._turn, deepcopy(self._board.get_board()), self._ended,
@@ -73,7 +73,7 @@ class Mancala:
         Sets data members to values passed in saved_state
 
         :param saved_state: Tuple containing turn (1 or 2),
-        board (7x7 list of integers), ended Boolean, winner string or None,
+        board (2x7 list of integers), ended Boolean, winner string or None,
         special1 Boolean.
         """
         (self._turn, board, self._ended,

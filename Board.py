@@ -27,7 +27,7 @@ class Board:
 
     def get_board(self):
         """
-        :return: List for the _board, 7x7 list of integers.
+        :return: List for the _board, 2x7 list of integers.
         """
         return self._board
 
@@ -35,7 +35,7 @@ class Board:
         """
         Sets _board to a new list.
 
-        :paran: board: 7x7 List of integers.
+        :paran: board: 2x7 List of integers.
         """
         self._board = board
 
