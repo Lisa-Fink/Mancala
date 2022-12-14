@@ -35,7 +35,7 @@ class Board:
         """
         Sets _board to a new list.
 
-        :paran: board: 2x7 List of integers.
+        :param: board: 2x7 List of integers.
         """
         self._board = board
 
