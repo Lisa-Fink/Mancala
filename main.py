@@ -7,6 +7,15 @@ from Mancala import Mancala
 
 
 def check_display_time(gui):
+    """Check the display time for pits and remove the changes if necessary.
+
+    Args:
+        gui: The GraphicInterface instance.
+
+    This function iterates over the pits that have changes in their display time
+    and removes the changes if the elapsed time since the change exceeds 1000 milliseconds.
+    It also updates the display to reflect the changes made.
+    """
     cur_time = pygame.time.get_ticks()
     for pit in gui.get_pits_changed():
         if pit.time_showing_changed < cur_time - 1000:
@@ -15,6 +24,7 @@ def check_display_time(gui):
 
 
 def main():
+    """Main entry point of the Mancala game."""
     gui = GraphicInterface()
     game = Mancala(gui.get_game_gui())
     mode = None
