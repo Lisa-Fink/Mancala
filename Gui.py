@@ -22,7 +22,20 @@ FONT = pygame.freetype.Font('Arial.ttf', 38)
 
 
 class Hole(pygame.sprite.Sprite):
+    """
+    Represents a hole in the Mancala game board.
+    """
     def __init__(self, width, height, left, top, seeds=0):
+        """
+        Initialize a Hole object.
+
+        Args:
+            width (int): The width of the hole.
+            height (int): The height of the hole.
+            left (int): The x-coordinate of the top-left corner of the hole.
+            top (int): The y-coordinate of the top-left corner of the hole.
+            seeds (int, optional): The initial number of seeds in the hole. Defaults to 0.
+        """
         super().__init__()
         self.image = pygame.Surface([width, height])
         self.image.fill(BOARD_BG)
@@ -42,6 +55,9 @@ class Hole(pygame.sprite.Sprite):
         self.can_select = False
 
     def update_display(self):
+        """
+         Update the display of the hole on the screen.
+        """
         self.image.fill(BOARD_BG)
         rect = self.image.get_rect()
         pygame.draw.rect(self.image, PIT_BG, rect, 0, border_radius=40)
@@ -52,11 +68,20 @@ class Hole(pygame.sprite.Sprite):
             self.select()
 
     def select(self):
+        """
+        Highlight the hole to indicate it can be selected.
+        """
         rect = self.image.get_rect()
         pygame.draw.rect(self.image, (150, 0, 0),
                          rect, 6, border_radius=40)
 
     def display_changed_seed_count(self, amount):
+        """
+        Display the change in seed count for the hole.
+
+        Args:
+            amount (int): The change in seed count.
+        """
         sign = ""
         if amount > 0:
             sign = '+'
@@ -65,6 +90,12 @@ class Hole(pygame.sprite.Sprite):
                               sign + str(amount))
 
     def change_seed_count(self, amount):
+        """
+        Change the seed count in the hole and update the display.
+
+        Args:
+            amount (int): The amount to change the seed count by.
+        """
         self.change = amount
         pre = self.seeds
         self.seeds += amount
@@ -79,22 +110,59 @@ class Hole(pygame.sprite.Sprite):
 
 
 class Store(Hole):
+    """
+    Represents a store in the Mancala game board.
+    Inherits from the Hole class.
+    """
     def __init__(self, left, top, player):
+        """
+        Initialize a Store object.
+
+        Args:
+            left (int): The x-coordinate of the top-left corner of the store.
+            top (int): The y-coordinate of the top-left corner of the store.
+            player (int): The player number associated with the store.
+        """
+
         super().__init__(STORE_WIDTH, STORE_HEIGHT, left, top)
         self.player = player
 
 
 class Pit(Hole):
+    """
+    Represents a pit in the Mancala game board.
+    Inherits from the Hole class.
+    """
     def __init__(self, left, top, num):
+        """
+        Initializes a Pit object.
+
+        Args:
+            left (int): The x-coordinate of the top-left corner of the pit.
+            top (int): The y-coordinate of the top-left corner of the pit.
+            num (int): The number associated with the pit.
+        """
         super().__init__(PIT_WIDTH, PIT_HEIGHT, left, top, 4)
         self.num = num
 
 
 class Display:
+    """
+    Represents the display of the Mancala game.
+    """
     def __init__(self, screen):
+        """
+        Initialize a Display object.
+
+        Args:
+            screen (pygame.Surface): The screen to display the game on.
+        """
         self._screen = screen
 
     def display_title(self):
+        """
+        Display the title of the game on the screen.
+        """
         font = pygame.font.Font('Arial.ttf', 62)
         text = font.render('Mancala', True, (255, 255, 255))
         self._screen.blit(text, ((W_WIDTH // 2) - text.get_size()[0] // 2,
@@ -102,7 +170,17 @@ class Display:
 
 
 class GameScreen(Display):
+    """
+    Represents the game screen of the Mancala game.
+    Inherits from the Display class.
+    """
     def __init__(self, screen):
+        """
+        Initialize a GameScreen object.
+
+        Args:
+            screen (pygame.Surface): The screen to display the game on.
+        """
         super().__init__(screen)
         self._change_pits = []
         self.all_sprites = pygame.sprite.Group()
@@ -114,6 +192,9 @@ class GameScreen(Display):
         self.initialize_pits()
 
     def reset(self):
+        """
+        Reset the game screen by emptying the stores and pits.
+        """
         self._change_pits = []
         self.stores.empty()
         self.pits[0].empty()
@@ -123,9 +204,22 @@ class GameScreen(Display):
         self.initialize_pits()
 
     def set_mode(self, mode):
+        """
+        Set the game mode.
+
+        Args:
+            mode (str): The game mode to set. (TWO, EASY, or HARD)
+        """
         self._mode = mode
 
     def display_turn(self, name, turn):
+        """
+        Display the current turn on the screen.
+
+        Args:
+            name (str): The name of the player whose turn it is.
+            turn (int): The current turn number.
+        """
         turn_font = pygame.freetype.Font('Arial.ttf', 28)
 
         turn_rect = pygame.Rect(10, 100,
@@ -149,11 +243,21 @@ class GameScreen(Display):
                         self.update(pit)
 
     def display_board(self):
+        """
+        Display the game board on the screen.
+        """
         pygame.draw.rect(self._screen, BOARD_BG,
                          pygame.Rect(BOARD_LEFT, BOARD_TOP,
                                      BOARD_WIDTH, 400), 0, 140)
 
     def display_players(self, player1, player2):
+        """
+        Display the names of the players on the screen.
+
+        Args:
+            player1 (str): Name of player 1.
+            player2 (str): Name of player 2.
+        """
         player_font = pygame.freetype.Font('Arial.ttf', 28)
 
         player1_rect = pygame.Rect(10, 20,
@@ -173,6 +277,9 @@ class GameScreen(Display):
                               (255, 255, 255))
 
     def initialize_stores(self):
+        """
+        Initialize the stores on the game board.
+        """
         store2 = Store(BOARD_LEFT + GAP, BOARD_TOP + GAP, 2)
 
         store1 = Store(BOARD_WIDTH + BOARD_LEFT - GAP - STORE_WIDTH,
@@ -184,6 +291,9 @@ class GameScreen(Display):
         self.all_sprites.add(store2)
 
     def initialize_pits(self):
+        """
+        Initialize the pits on the game board.
+        """
         tops = [PLAYER1_PIT_TOP, PLAYER2_PIT_TOP]
         for i in range(6):
             pit = Pit(
@@ -204,6 +314,13 @@ class GameScreen(Display):
             self.pits[1].add(player2_pits.pop())
 
     def start(self, player1_name, player2_name):
+        """
+        Start the game by displaying the initial screen with player names.
+
+        Args:
+            player1_name (str): Name of player 1.
+            player2_name (str): Name of player 2.
+        """
         # Initialise screen
         self._screen.fill((0, 0, 0))
         self.display_title()
@@ -220,10 +337,24 @@ class GameScreen(Display):
         self.display_turn(player1_name, 1)
 
     def update(self, hole):
+        """
+        Update the display after a move is made.
+
+        Args:
+            hole (Hole): The hole that was updated.
+        """
         hole.update_display()
         self.all_sprites.draw(self._screen)
 
     def update_pit(self, side, hole_num, amount):
+        """
+        Update a pit with a new seed count and display the change on the screen.
+
+        Args:
+            side (int): The side of the pit (1 for player 1, 2 for player 2).
+            hole_num (int): The number of the hole.
+            amount (int): The new seed count for the hole.
+        """
         hole = self.get_pit(side, hole_num)
         hole.change_seed_count(amount)
         self._change_pits.append(hole)
@@ -232,34 +363,88 @@ class GameScreen(Display):
         pygame.time.delay(600)
 
     def remove_change_display(self, hole):
+        """
+        Remove the display of seed count change for a hole.
+
+        Args:
+            hole (Hole): The hole to remove the change display from.
+        """
         hole.change = None
         self._change_pits.remove(hole)
         self.update(hole)
 
     def get_pits_changed(self):
+        """
+        Get a list of pits that have changed seed counts.
+
+        Returns:
+            list[Hole]: A list of pits with changed seed counts.
+        """
         return self._change_pits
 
     def detect_pit_click(self, turn):
+        """
+        Detect a pit click on the screen.
+
+        Args:
+            turn (int): The current player's turn (1 for player 1, 2 for player 2).
+
+        Returns:
+            Hole: The pit that was clicked.
+        """
         for pit in self.pits[turn - 1]:
             if pit.rect.collidepoint(pygame.mouse.get_pos()):
                 return pit
 
     def check_click(self, turn):
+        """
+        Check for a pit click on the screen.
+
+        Args:
+            turn (int): The current player's turn (1 for player 1, 2 for player 2).
+
+        Returns:
+            Hole: The pit that was clicked, or None if no pit was clicked.
+        """
         return self.detect_pit_click(turn)
 
     def get_pit(self, side, pit):
+        """
+        Get the pit object based on the side and pit number.
+
+        Args:
+            side (int): The side of the pit (1 for player 1, 2 for player 2).
+            pit (int): The number of the pit.
+
+        Returns:
+            Hole: The pit object.
+        """
         if pit == 7:
             return self.stores.sprites()[side - 1]
         return self.pits[side - 1].sprites()[pit - 1]
 
 
 class SelectScreen(Display):
+    """
+    Class representing the select screen
+    """
     def __init__(self, screen):
         super().__init__(screen)
         self._buttons = []
 
     def display_button(self, rect, text, offset_x, offset_y, hover=False,
                        add=True):
+        """
+        Display a button on the screen.
+
+        Args:
+            rect (tuple): The dimensions of the button rectangle (x, y, width, height).
+            text (str): The text to display on the button.
+            offset_x (int): The x offset for the button text.
+            offset_y (int): The y offset for the button text.
+            hover (bool, optional): Indicates if the button is being hovered over. Defaults to False.
+            add (bool, optional): Indicates if the button should be added to the list of buttons. Defaults to True.
+        """
         button_color = (250, 250, 250)
         if hover:
             button_color = (250, 0, 250)
@@ -270,12 +455,31 @@ class SelectScreen(Display):
             self._buttons.append((rect, text, (offset_x, offset_y)))
 
     def display_button_text(self, rect, text, offset_x, offset_y):
+        """
+        Displays button text on the screen.
+
+        Args:
+            rect (tuple): The position and size of the button rectangle.
+            text (str): The text to display on the button.
+            offset_x (int): The x-axis offset for the text.
+            offset_y (int): The y-axis offset for the text.
+        """
+
         font = pygame.font.Font('Arial.ttf', 26)
         text = font.render(text, True, (0, 0, 0))
         self._screen.blit(text, (rect[0] + offset_x,
                                  rect[1] + offset_y))
 
     def check_hover(self, mouse_pos):
+        """
+        Checks if the mouse is hovering over any button.
+
+        Args:
+            mouse_pos (tuple): The current position of the mouse.
+
+        Returns:
+            None
+        """
         for button in self._buttons:
             rect, text, (offset_x, offset_y) = button
             hover = False
@@ -287,6 +491,9 @@ class SelectScreen(Display):
 
 
 class GameModeScreen(SelectScreen):
+    """
+    Class representing the game mode selection screen.
+    """
     BUTTON_WIDTH = 180
     BUTTON_HEIGHT = 60
 
@@ -303,6 +510,12 @@ class GameModeScreen(SelectScreen):
         super().__init__(screen)
 
     def start(self):
+        """
+        Initializes the game mode selection screen.
+
+        Returns:
+            None
+        """
         self._screen.fill((0, 0, 0))
         self._buttons.clear()
         self.display_title()
@@ -310,17 +523,38 @@ class GameModeScreen(SelectScreen):
         self.display_player_options()
 
     def display_instructions(self):
+        """
+        Displays the instructions button and text on the screen.
+
+        Returns:
+            None
+        """
         self.display_button(self.INSTRUCTION_BUTTON, 'How To Play', 20, 14)
         font = pygame.font.Font('Arial.ttf', 34)
         text = font.render('Please Select a Game Mode', True, (180, 190, 170))
         self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 230))
 
     def display_player_options(self):
+        """
+        Displays the player options on the screen.
+
+        Returns:
+            None
+        """
         self.display_button(self.TWO_PLAYER_BUTTON, '2 PLAYERS', 22, 14)
         self.display_button(self.EASY_BUTTON, 'VS EASY AI', 21, 14)
         self.display_button(self.HARD_BUTTON, 'VS HARD AI', 19, 14)
 
     def check_click(self, mouse_pos):
+        """
+        Checks if any button was clicked based on the mouse position.
+
+        Args:
+            mouse_pos (tuple): The position of the mouse cursor.
+
+        Returns:
+            str or None: The selected game mode or None if no button was clicked.
+        """
         if pygame.Rect(self.EASY_BUTTON).collidepoint(mouse_pos):
             return 'EASY'
         if pygame.Rect(self.HARD_BUTTON).collidepoint(mouse_pos):
@@ -332,6 +566,9 @@ class GameModeScreen(SelectScreen):
 
 
 class InstructionsScreen(SelectScreen):
+    """
+    Class representing the instructions screen.
+    """
     BUTTON_WIDTH = 180
     BUTTON_HEIGHT = 60
     INSTRUCTIONS_IMG = pygame.image.load('instructions.png')
@@ -342,19 +579,37 @@ class InstructionsScreen(SelectScreen):
         super().__init__(screen)
 
     def display_instruction_img(self):
+        """
+        Displays the instructions image.
+        """
         self._screen.blit(self.INSTRUCTIONS_IMG, (0, 0))
 
     def start(self):
+        """
+        Displays the instructions screen.
+        """
         self._screen.fill((0, 0, 0))
         self.display_instruction_img()
         self.display_button(self.BACK_BUTTON, 'GO BACK', 30, 14)
 
     def check_click(self, mouse_pos):
+        """
+        Handles mouse clicks on the screen.
+
+        Args:
+            mouse_pos (tuple): The position of the mouse click.
+
+        Returns:
+            str: The action to perform based on the click.
+        """
         if pygame.Rect(self.BACK_BUTTON).collidepoint(mouse_pos):
             return 'GAME MENU'
 
 
 class PlayerNameScreen(SelectScreen):
+    """
+    Class representing the screen for entering player names.
+    """
     BUTTON_WIDTH = 180
     BUTTON_HEIGHT = 60
 
@@ -374,9 +629,15 @@ class PlayerNameScreen(SelectScreen):
         self._active = None
         self._player_one_text = ''
         self._player_two_text = ''
-        self._game_mode = None
+        self._game_mode = None  # 'TWO' or 'EASY' or 'HARD'
 
     def start(self, game_mode):
+        """
+        Displays the player name entry screen.
+
+        Args:
+            game_mode (str): The selected game mode.
+        """
         self._game_mode = game_mode
         self._screen.fill((0, 0, 0))
         self._buttons.clear()
@@ -399,6 +660,12 @@ class PlayerNameScreen(SelectScreen):
             self.display_player_two_input()
 
     def process_input_change(self, char):
+        """
+        Handles changes in the input text.
+
+        Args:
+            char (str or int): The entered character or -1 for backspace.
+        """
         if self._active is None:
             return
         # set data member to remember text when changing active state
@@ -417,6 +684,9 @@ class PlayerNameScreen(SelectScreen):
             self.display_player_two_input()
 
     def display_player_one_input(self):
+        """
+        Displays the input box for player one.
+        """
         input_one_rect = pygame.Rect(self.INPUT_ONE)
         bg = (100, 100, 100)
         if self._active == 1:
@@ -431,6 +701,9 @@ class PlayerNameScreen(SelectScreen):
                           (input_one_rect.x + 10, input_one_rect.y + 10))
 
     def display_player_two_input(self):
+        """
+        Displays the input box for player two.
+        """
         input_two_rect = pygame.Rect(self.INPUT_TWO)
         bg = (100, 100, 100)
         if self._active == 2:
@@ -445,18 +718,33 @@ class PlayerNameScreen(SelectScreen):
                           (input_two_rect.x + 10, input_two_rect.y + 10))
 
     def display_player_one_prompt(self):
+        """
+        Displays the prompt for entering player one's name.
+        """
         font = pygame.font.Font('Arial.ttf', 34)
         text = font.render('Please Enter Player One\'s Name',
                            True, (180, 190, 170))
         self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 200))
 
     def display_player_two_prompt(self):
+        """
+        Displays the prompt for entering player two's name.
+        """
         font = pygame.font.Font('Arial.ttf', 34)
         text = font.render('Please Enter Player Two\'s Name',
                            True, (180, 190, 170))
         self._screen.blit(text, (W_WIDTH // 2 - text.get_width() // 2, 360))
 
     def check_click(self, mouse_pos):
+        """
+        Handles mouse clicks on the screen.
+
+        Args:
+            mouse_pos (tuple): The position of the mouse click.
+
+        Returns:
+            str or tuple: The action to perform based on the click.
+        """
         # clicked start
         if pygame.Rect(self.START_BUTTON).collidepoint(mouse_pos):
             # handle returning AI type
@@ -490,6 +778,10 @@ class PlayerNameScreen(SelectScreen):
 
 
 class EndScreen(SelectScreen):
+    """
+    Class representing the end screen.
+    """
+
     BOX_WIDTH = W_WIDTH // 2
     BOX = (W_WIDTH // 4, 160, BOX_WIDTH, W_HEIGHT // 1.5)
 
@@ -505,6 +797,17 @@ class EndScreen(SelectScreen):
         super().__init__(screen)
 
     def start(self, winner_str, store1, store2):
+        """
+        Displays the end screen.
+
+        Args:
+            winner_str (str): The string indicating the winner.
+            store1 (int): The number of seeds in Player 1's store.
+            store2 (int): The number of seeds in Player 2's store.
+
+        Returns:
+            None
+        """
         self.display_title()
         self.display_box()
 
@@ -519,15 +822,38 @@ class EndScreen(SelectScreen):
         self.display_button(self.QUIT_BUTTON, 'EXIT GAME', 22, 14)
 
     def display_winner_text(self, winner_str, offset_y):
+        """
+        Displays the winner text.
+
+        Args:
+            winner_str (str): The string to display.
+            offset_y (int): The vertical offset for positioning.
+
+        Returns:
+            None
+        """
         font = pygame.font.Font('Arial.ttf', 34)
         text = font.render(winner_str, True, (180, 190, 170))
         self._screen.blit(text, (self.BOX[0] + 45, self.BOX[1] + offset_y))
 
     def display_box(self):
+        """
+        Displays the box with the end of game text/options.
+        """
         pygame.draw.rect(self._screen, (86, 86, 86), self.BOX,
                          border_radius=10)
 
     def check_click(self, mouse_pos):
+        """
+        Handles mouse clicks on the screen.
+
+        Args:
+            mouse_pos (tuple): The position of the mouse click.
+
+        Returns:
+            int: The action to perform based on the click. 2 is play again,
+                1 is go to menu, -1 is quit.
+        """
         # clicked on play again
         if pygame.Rect(self.AGAIN_BUTTON).collidepoint(mouse_pos):
             return 2
@@ -538,6 +864,9 @@ class EndScreen(SelectScreen):
 
 
 class GraphicInterface:
+    """
+    Class representing the graphic interface for the Mancala game.
+    """
     def __init__(self):
         self._screen = pygame.display.set_mode((W_WIDTH, W_HEIGHT))
         self._select_mode_screen = GameModeScreen(self._screen)
@@ -557,6 +886,15 @@ class GraphicInterface:
         pygame.display.flip()
 
     def next_screen(self, *args):
+        """
+        Moves to the next screen.
+
+        Args:
+            *args: Optional arguments to pass to the next screen.
+
+        Returns:
+            None
+        """
         if self._current_screen < 4:
             self._current_screen += 1
         else:
@@ -565,33 +903,74 @@ class GraphicInterface:
         pygame.display.flip()
 
     def get_game_gui(self):
+        """
+        Returns the GameScreen instance.
+        """
         return self._game_screen
 
     def get_screen_index(self):
+        """
+        Returns the index of the current screen.
+        """
         return self._current_screen
 
     def get_screen(self):
+        """
+        Returns the current screen.
+        """
         return self._screens[self._current_screen]
 
     def show_mode_screen(self):
+        """
+        Displays the game mode selection screen.
+        """
         self._current_screen = 0
         self._select_mode_screen.start()
         pygame.display.flip()
 
     def game_gui_showing_changed(self):
+        """
+        Checks if the game GUI is showing.
+
+        Returns:
+            bool: True if the game GUI is showing, False otherwise.
+        """
         return len(self._game_screen.get_pits_changed()) > 0
 
     def show_game_screen(self, name1, name2):
+        """
+        Displays the game screen.
+
+        Args:
+            name1 (str): The name of Player 1.
+            name2 (str): The name of Player 2.
+
+        Returns:
+            None
+        """
         self._current_screen = 2
         self._game_screen.start(name1, name2)
         pygame.display.flip()
 
     def show_new_game_screen(self, name1, name2):
+        """
+        Displays a new game screen.
+
+        Args:
+            name1 (str): The name of Player 1.
+            name2 (str): The name of Player 2.
+
+        Returns:
+            None
+        """
         self._game_screen.reset()
         self.show_game_screen(name1, name2)
         pygame.display.flip()
 
     def show_instructions_screen(self):
+        """
+        Displays the instructions screen.
+        """
         self._current_screen = 4
         self._instructions.start()
         pygame.display.flip()
