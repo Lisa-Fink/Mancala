@@ -5,7 +5,7 @@ The classic game Mancala, implemented using Python, a Graphical User Interface b
 ![Mancala Demo](MancalaDemo.gif)
 
 - Mancala is a two-player strategy game that involves moving stones (seeds) across pits on a board. The objective of the game is to capture more seeds than the opponent.
-- Run the `game.py` script to start the game.
+- Run `main.py` to start the game.
 
 ## Requirements
 
